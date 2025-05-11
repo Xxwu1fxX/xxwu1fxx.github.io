@@ -1,46 +1,258 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Minecraft Coordinate Shifter</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Pearl Cannon Calculator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            grid-template-rows: auto 1fr;
+            gap: 20px;
+            grid-template-areas:
+                "converter title"
+                "converter calculator";
+        }
+        .title-area {
+            grid-area: title;
+            text-align: center;
+        }
+        .converter {
+            grid-area: converter;
+            background-color: #252526;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            height: fit-content;
+        }
+        .main-calculator {
+            grid-area: calculator;
+            background-color: #252526;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #4fc3f7;
+            margin-bottom: 20px;
+        }
+        h2 {
+            margin-top: 0;
+            color: #4fc3f7;
+            font-size: 1.2em;
+            border-bottom: 1px solid #444;
+            padding-bottom: 8px;
+        }
+        .coordinate-section {
+            background-color: #333333;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #4fc3f7;
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #b3e5fc;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: #3c3c3c;
+            color: #e0e0e0;
+        }
+        button {
+            background-color: #4fc3f7;
+            color: #1e1e1e;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            margin: 15px auto;
+            width: 200px;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #29b6f6;
+        }
+        .results {
+            background-color: #2d3748;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #4ade80;
+        }
+        .results h3 {
+            color: #4ade80;
+            margin-top: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+        th {
+            background-color: #333;
+            color: #b3e5fc;
+        }
+        .relative-coords {
+            font-weight: bold;
+            color: #4fc3f7;
+        }
+        .minecraft-font {
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .hidden {
+            display: none;
+        }
+        .placeholder-text {
+            text-align: center;
+            padding: 30px;
+            color: #999;
+            font-style: italic;
+        }
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-areas:
+                    "title"
+                    "converter"
+                    "calculator";
+            }
+        }
+    </style>
 </head>
 <body>
-  <h1>Minecraft Coordinate Shifter</h1>
-  <p>This will shift any position so that the original point becomes the target point.</p>
+    <div class="container">
+        <div class="title-area">
+            <h1 class="minecraft-font">Minecraft Pearl Cannon Calculator</h1>
+        </div>
+        
+        <div class="converter">
+            <h2>Coordinate Converter</h2>
+            <div class="coordinate-section">
+                <label for="conv-machine-x">Machine X:</label>
+                <input type="number" id="conv-machine-x" placeholder="Enter X coordinate">
+                
+                <label for="conv-machine-z">Machine Z:</label>
+                <input type="number" id="conv-machine-z" placeholder="Enter Z coordinate">
+            </div>
+            
+            <div class="coordinate-section">
+                <label for="conv-target-x">Target X:</label>
+                <input type="number" id="conv-target-x" placeholder="Enter X coordinate">
+                
+                <label for="conv-target-z">Target Z:</label>
+                <input type="number" id="conv-target-z" placeholder="Enter Z coordinate">
+            </div>
+            
+            <button onclick="convertCoordinates()">Convert</button>
+            
+            <div id="converter-results" class="results hidden">
+                <h3>Converted Coordinates</h3>
+                
+                <table>
+                    <tr>
+                        <th>Point</th>
+                        <th>Relative Position</th>
+                    </tr>
+                    <tr>
+                        <td>Machine:</td>
+                        <td class="relative-coords">
+                            (0, 0)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Target:</td>
+                        <td class="relative-coords">
+                            X: <span id="rel-target-x"></span>, 
+                            Z: <span id="rel-target-z"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Distance:</td>
+                        <td><span id="conv-distance"></span> blocks</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <div class="main-calculator">
+            <h2>Pearl Cannon Setup Calculator</h2>
+            <div class="placeholder-text">
+                <p>Full calculator will be implemented later with additional variables.</p>
+                <p>This section will calculate the exact number of charges needed based on your cannon's specifications.</p>
+            </div>
+            
+            <!-- Placeholder for future implementation -->
+            <div class="coordinate-section">
+                <h3>Cannon Specifications</h3>
+                <label for="placeholder1">Pearl Cannon Type:</label>
+                <input type="text" id="placeholder1" placeholder="Coming soon" disabled>
+                
+                <label for="placeholder2">Redstone Charge Factor:</label>
+                <input type="number" id="placeholder2" placeholder="Coming soon" disabled>
+            </div>
+            
+            <div class="coordinate-section">
+                <h3>Target Information</h3>
+                <label for="placeholder3">Target Coordinates:</label>
+                <input type="text" id="placeholder3" placeholder="Coming soon" disabled>
+                
+                <label for="placeholder4">Required Precision:</label>
+                <input type="number" id="placeholder4" placeholder="Coming soon" disabled>
+            </div>
+            
+            <button disabled>Calculate (Coming Soon)</button>
+        </div>
+    </div>
 
-  <h3>Original Anchor Position</h3>
-  <label>X: <input type="number" id="origX" placeholder="e.g. 100"></label><br>
-  <label>Z: <input type="number" id="origZ" placeholder="e.g. -14"></label><br><br>
-
-  <h3>Target Position</h3>
-  <label>X: <input type="number" id="targetX" placeholder="e.g. 500"></label><br>
-  <label>Z: <input type="number" id="targetZ" placeholder="e.g. 500"></label><br><br>
-
-  <h3>Thing's Current Position</h3>
-  <label>X: <input type="number" id="thingX" placeholder="e.g. 120"></label><br>
-  <label>Z: <input type="number" id="thingZ" placeholder="e.g. -10"></label><br><br>
-
-  <button onclick="calculate()">Calculate Shifted Position</button>
-
-  <h3>Result:</h3>
-  <p id="result">---</p>
-
-  <script>
-    function calculate() {
-      const origX = parseFloat(document.getElementById('origX').value);
-      const origZ = parseFloat(document.getElementById('origZ').value);
-      const targetX = parseFloat(document.getElementById('targetX').value);
-      const targetZ = parseFloat(document.getElementById('targetZ').value);
-      const thingX = parseFloat(document.getElementById('thingX').value);
-      const thingZ = parseFloat(document.getElementById('thingZ').value);
-
-      const shiftX = targetX - origX;
-      const shiftZ = targetZ - origZ;
-
-      const newX = thingX + shiftX;
-      const newZ = thingZ + shiftZ;
-
-      document.getElementById('result').innerText = `Shifted Position: X = ${newX}, Z = ${newZ}`;
-    }
-  </script>
+    <script>
+        function convertCoordinates() {
+            // Get input values
+            const machineX = parseFloat(document.getElementById('conv-machine-x').value) || 0;
+            const machineZ = parseFloat(document.getElementById('conv-machine-z').value) || 0;
+            
+            const targetX = parseFloat(document.getElementById('conv-target-x').value) || 0;
+            const targetZ = parseFloat(document.getElementById('conv-target-z').value) || 0;
+            
+            // Calculate relative coordinates
+            const relX = targetX - machineX;
+            const relZ = targetZ - machineZ;
+            
+            // Calculate distance
+            const distance = Math.sqrt(relX * relX + relZ * relZ);
+            
+            // Update results
+            document.getElementById('rel-target-x').textContent = relX.toFixed(2);
+            document.getElementById('rel-target-z').textContent = relZ.toFixed(2);
+            document.getElementById('conv-distance').textContent = distance.toFixed(2);
+            
+            // Show results
+            document.getElementById('converter-results').classList.remove('hidden');
+        }
+    </script>
 </body>
 </html>
