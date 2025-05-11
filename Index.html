@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Minecraft Coordinate Converter</title>
+</head>
+<body>
+  <h1>Minecraft Coordinate Converter</h1>
+  <p>Enter original location and desired center to get new position.</p>
+
+  <label>Original X: <input type="number" id="origX"></label><br>
+  <label>Original Z: <input type="number" id="origZ"></label><br><br>
+
+  <label>Target X: <input type="number" id="targetX" value="500"></label><br>
+  <label>Target Z: <input type="number" id="targetZ" value="500"></label><br><br>
+
+  <button onclick="calculate()">Calculate New Position</button>
+
+  <h3>Result:</h3>
+  <p id="result">---</p>
+
+  <script>
+    function calculate() {
+      const origX = parseInt(document.getElementById('origX').value);
+      const origZ = parseInt(document.getElementById('origZ').value);
+      const targetX = parseInt(document.getElementById('targetX').value);
+      const targetZ = parseInt(document.getElementById('targetZ').value);
+
+      const diffX = targetX - origX;
+      const diffZ = targetZ - origZ;
+
+      const newX = origX + diffX;
+      const newZ = origZ + diffZ;
+
+      document.getElementById('result').innerText = `New X: ${newX}, New Z: ${newZ}`;
+    }
+  </script>
+</body>
+</html>
