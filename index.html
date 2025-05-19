@@ -276,7 +276,7 @@
     </div>
 
     <script>
-        // Pearl cannon trajectory data (charges 1-32 with landing coordinates)
+        // Pearl cannon trajectory data (charges 1-32 with landing coordinates from +X machine)
         const trajectoryData = [
             {charge: 1, x: 967.63, z: 1059.38},
             {charge: 2, x: 929.48, z: 1097.51},
@@ -330,6 +330,57 @@
             };
         });
 
+        // Generate trajectory data for all four machine directions
+        const allDirectionTrajectories = {
+            '+X': relativeTrajectory.map(p => ({...p, direction: '+X'})),
+            '-X': relativeTrajectory.map(p => ({
+                ...p,
+                relX: -p.relX,
+                relZ: -p.relZ,
+                direction: '-X'
+            })),
+            '+Z': relativeTrajectory.map(p => ({
+                ...p,
+                relX: p.relZ,
+                relZ: -p.relX,
+                direction: '+Z'
+            })),
+            '-Z': relativeTrajectory.map(p => ({
+                ...p,
+                relX: -p.relZ,
+                relZ: p.relX,
+                direction: '-Z'
+            }))
+        };
+
+        function determineOptimalDirection(targetX, targetZ, machineX, machineZ) {
+            const relX = targetX - machineX;
+            const relZ = targetZ - machineZ;
+            
+            // Determine primary direction based on largest component
+            const absX = Math.abs(relX);
+            const absZ = Math.abs(relZ);
+            
+            // Calculate angle for reference
+            const angle = Math.atan2(relZ, relX) * (180 / Math.PI);
+            const normalizedAngle = angle < 0 ? angle + 360 : angle;
+            
+            // Determine best machine direction
+            let primaryDirection = '';
+            if (absX >= absZ) {
+                primaryDirection = relX > 0 ? '+X' : '-X';
+            } else {
+                primaryDirection = relZ > 0 ? '+Z' : '-Z';
+            }
+            
+            return {
+                primary: primaryDirection,
+                angle: normalizedAngle,
+                relX: relX,
+                relZ: relZ
+            };
+        }
+
         function convertCoordinates() {
             const machineX = parseFloat(document.getElementById('conv-machine-x').value) || 0;
             const machineZ = parseFloat(document.getElementById('conv-machine-z').value) || 0;
@@ -367,57 +418,100 @@
             const relTargetZ = targetZ - machineZ;
             const targetDistance = Math.sqrt(relTargetX * relTargetX + relTargetZ * relTargetZ);
             
-            // Find exact matches and closest options
-            let exactMatch = null;
-            let closestOptions = [];
-            let minDistance = Infinity;
+            // Determine optimal direction
+            const directionInfo = determineOptimalDirection(targetX, targetZ, machineX, machineZ);
             
-            relativeTrajectory.forEach(point => {
-                const distance = Math.sqrt(
-                    Math.pow(point.relX - relTargetX, 2) + 
-                    Math.pow(point.relZ - relTargetZ, 2)
-                );
+            // Search all directions but prioritize the optimal one
+            const allResults = {};
+            const directions = ['+X', '-X', '+Z', '-Z'];
+            
+            directions.forEach(direction => {
+                const trajectory = allDirectionTrajectories[direction];
+                let exactMatch = null;
+                let closestOptions = [];
+                let minDistance = Infinity;
                 
-                if (distance < 1.0) { // Within 1 block = close enough for exact
-                    exactMatch = {
-                        ...point,
-                        error: distance
-                    };
-                }
+                trajectory.forEach(point => {
+                    const distance = Math.sqrt(
+                        Math.pow(point.relX - relTargetX, 2) + 
+                        Math.pow(point.relZ - relTargetZ, 2)
+                    );
+                    
+                    if (distance < 1.0) { // Within 1 block = close enough for exact
+                        if (!exactMatch || distance < exactMatch.error) {
+                            exactMatch = {
+                                ...point,
+                                error: distance
+                            };
+                        }
+                    }
+                    
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closestOptions = [{
+                            ...point,
+                            error: distance
+                        }];
+                    } else if (Math.abs(distance - minDistance) < 0.1) {
+                        closestOptions.push({
+                            ...point,
+                            error: distance
+                        });
+                    }
+                });
                 
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    closestOptions = [{
-                        ...point,
-                        error: distance
-                    }];
-                } else if (Math.abs(distance - minDistance) < 0.1) {
-                    closestOptions.push({
-                        ...point,
-                        error: distance
-                    });
-                }
+                allResults[direction] = {
+                    exact: exactMatch,
+                    closest: closestOptions.slice(0, 3),
+                    trajectory: trajectory
+                };
             });
             
-            // Try interpolation between closest charges
+            // Find the best overall result
+            let bestExact = null;
+            let bestClosest = [];
+            let allExact = [];
+            let allClosest = [];
+            
+            directions.forEach(direction => {
+                const result = allResults[direction];
+                if (result.exact) {
+                    allExact.push(result.exact);
+                    if (!bestExact || result.exact.error < bestExact.error) {
+                        bestExact = result.exact;
+                    }
+                }
+                allClosest.push(...result.closest);
+            });
+            
+            // Sort all closest options
+            allClosest.sort((a, b) => a.error - b.error);
+            bestClosest = allClosest.slice(0, 5);
+            
+            // Try interpolation on the optimal direction
             let interpolatedResult = null;
-            if (!exactMatch && closestOptions.length > 0) {
-                interpolatedResult = attemptInterpolation(relTargetX, relTargetZ);
+            if (!bestExact) {
+                interpolatedResult = attemptInterpolation(relTargetX, relTargetZ, directionInfo.primary);
             }
             
             return {
-                exact: exactMatch,
-                closest: closestOptions.slice(0, 3), // Top 3 closest
+                exact: bestExact,
+                allExact: allExact.filter(e => e.error < 5.0), // Show all exact matches within 5 blocks
+                closest: bestClosest,
                 interpolated: interpolatedResult,
-                targetDistance: targetDistance
+                targetDistance: targetDistance,
+                optimalDirection: directionInfo.primary,
+                directionInfo: directionInfo
             };
         }
 
-        function attemptInterpolation(targetX, targetZ) {
+        function attemptInterpolation(targetX, targetZ, direction = '+X') {
+            const trajectory = allDirectionTrajectories[direction];
+            
             // Find two consecutive charges that bracket the target
-            for (let i = 0; i < relativeTrajectory.length - 1; i++) {
-                const p1 = relativeTrajectory[i];
-                const p2 = relativeTrajectory[i + 1];
+            for (let i = 0; i < trajectory.length - 1; i++) {
+                const p1 = trajectory[i];
+                const p2 = trajectory[i + 1];
                 
                 // Check if target is roughly between these two points
                 const dist1 = Math.sqrt(Math.pow(p1.relX - targetX, 2) + Math.pow(p1.relZ - targetZ, 2));
@@ -451,7 +545,8 @@
                             chargeRange: `${p1.charge}-${p2.charge}`,
                             relX: interpX,
                             relZ: interpZ,
-                            error: error
+                            error: error,
+                            direction: direction
                         };
                     }
                 }
