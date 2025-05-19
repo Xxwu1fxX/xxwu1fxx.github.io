@@ -3,663 +3,393 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minecraft Pearl Cannon Calculator</title>
+    <title>Ender Pearl Cannon Calculator</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #1e1e1e;
-            color: #e0e0e0;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
         }
         .container {
-            display: grid;
-            grid-template-columns: 300px 1fr;
-            grid-template-rows: auto 1fr;
-            gap: 20px;
-            grid-template-areas:
-                "converter title"
-                "converter calculator";
+            max-width: 600px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
-        .title-area {
-            grid-area: title;
+        .header {
+            background-color: #6b7280;
+            color: white;
+            padding: 24px;
             text-align: center;
         }
-        .converter {
-            grid-area: converter;
-            background-color: #252526;
-            border-radius: 10px;
-            padding: 15px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            height: fit-content;
-        }
-        .main-calculator {
-            grid-area: calculator;
-            background-color: #252526;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-        }
         h1 {
-            color: #4fc3f7;
-            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 600;
         }
-        h2 {
-            margin-top: 0;
-            color: #4fc3f7;
-            font-size: 1.2em;
-            border-bottom: 1px solid #444;
-            padding-bottom: 8px;
+        .content {
+            padding: 32px;
         }
-        h3 {
-            color: #4fc3f7;
-            font-size: 1em;
-            margin-top: 20px;
-            margin-bottom: 10px;
+        .input-section {
+            margin-bottom: 32px;
         }
-        .coordinate-section {
-            background-color: #333333;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #4fc3f7;
-            margin-bottom: 15px;
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #4b5563;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
         }
         label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #b3e5fc;
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 4px;
+            font-weight: 500;
         }
-        input, select {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #555;
-            border-radius: 4px;
-            box-sizing: border-box;
-            background-color: #3c3c3c;
-            color: #e0e0e0;
-        }
-        button {
-            background-color: #4fc3f7;
-            color: #1e1e1e;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
-            cursor: pointer;
+        input[type="number"] {
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            background: #f9fafb;
             font-size: 16px;
-            display: block;
-            margin: 15px auto;
-            width: 200px;
-            font-weight: bold;
+            transition: all 0.2s;
         }
-        button:hover {
-            background-color: #29b6f6;
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #6b7280;
+            background: white;
         }
-        button:disabled {
-            background-color: #555;
-            color: #999;
-            cursor: not-allowed;
+        .calculate-btn {
+            width: 100%;
+            padding: 16px;
+            background-color: #6b7280;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .calculate-btn:hover {
+            background-color: #4b5563;
         }
         .results {
-            background-color: #2d3748;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-            border-left: 4px solid #4ade80;
+            margin-top: 32px;
+            background-color: #f9fafb;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
         }
-        .results h3 {
-            color: #4ade80;
-            margin-top: 0;
+        .results-header {
+            background-color: #6b7280;
+            color: white;
+            padding: 16px;
+            font-weight: 600;
+            text-align: center;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
+        .result-grid {
+            padding: 24px;
         }
-        th, td {
-            padding: 8px;
-            text-align: left;
-            border-bottom: 1px solid #444;
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e5e7eb;
         }
-        th {
-            background-color: #333;
-            color: #b3e5fc;
+        .result-item:last-child {
+            border-bottom: none;
+            padding-top: 16px;
+            margin-top: 8px;
+            border-top: 2px solid #e5e7eb;
         }
-        .relative-coords {
-            font-weight: bold;
-            color: #4fc3f7;
+        .machine-name {
+            font-weight: 600;
+            color: #4b5563;
         }
-        .minecraft-font {
-            font-weight: bold;
-            letter-spacing: 1px;
+        .charges-badge {
+            background-color: #6b7280;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
         }
-        .hidden {
-            display: none;
+        .charges-badge.active {
+            background-color: #059669;
         }
         .error {
-            color: #ff6b6b;
-            font-weight: bold;
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+            padding: 16px;
+            border-radius: 6px;
+            margin-top: 16px;
+            text-align: center;
         }
-        .success {
-            color: #4ade80;
-            font-weight: bold;
-        }
-        .warning {
-            color: #ffa726;
-            font-weight: bold;
-        }
-        .interpolated {
-            color: #ffa726;
-            font-style: italic;
-        }
-        .exact {
-            color: #4ade80;
-            font-weight: bold;
-        }
-        .distance-info {
-            background-color: #3a3a3a;
-            padding: 10px;
-            border-radius: 4px;
-            margin: 10px 0;
-        }
-        @media (max-width: 768px) {
-            .container {
-                grid-template-columns: 1fr;
-                grid-template-areas:
-                    "title"
-                    "converter"
-                    "calculator";
-            }
+        .info-box {
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: #0369a1;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="title-area">
-            <h1 class="minecraft-font">Minecraft Pearl Cannon Calculator</h1>
+        <div class="header">
+            <h1>Ender Pearl Cannon Calculator</h1>
         </div>
         
-        <div class="converter">
-            <h2>Coordinate Converter</h2>
-            <div class="coordinate-section">
-                <label for="conv-machine-x">Machine X:</label>
-                <input type="number" id="conv-machine-x" placeholder="Enter X coordinate" value="1001">
-                
-                <label for="conv-machine-z">Machine Z:</label>
-                <input type="number" id="conv-machine-z" placeholder="Enter Z coordinate" value="1026">
+        <div class="content">
+            <div class="info-box">
+                <strong>Note:</strong> The charge data is based on the +X machine. Enter machine and target coordinates to calculate required charges for each direction.
             </div>
-            
-            <div class="coordinate-section">
-                <label for="conv-target-x">Target X:</label>
-                <input type="number" id="conv-target-x" placeholder="Enter X coordinate">
-                
-                <label for="conv-target-z">Target Z:</label>
-                <input type="number" id="conv-target-z" placeholder="Enter Z coordinate">
+
+            <div class="input-section">
+                <div class="section-title">Machine Location</div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="machineX">X Coordinate</label>
+                        <input type="number" id="machineX" value="1001" step="0.01">
+                    </div>
+                    <div class="input-group">
+                        <label for="machineZ">Z Coordinate</label>
+                        <input type="number" id="machineZ" value="1026" step="0.01">
+                    </div>
+                </div>
             </div>
-            
-            <button onclick="convertCoordinates()">Convert</button>
-            
-            <div id="converter-results" class="results hidden">
-                <h3>Converted Coordinates</h3>
-                
-                <table>
-                    <tr>
-                        <th>Point</th>
-                        <th>Relative Position</th>
-                    </tr>
-                    <tr>
-                        <td>Machine:</td>
-                        <td class="relative-coords">
-                            (0, 0)
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Target:</td>
-                        <td class="relative-coords">
-                            X: <span id="rel-target-x"></span>, 
-                            Z: <span id="rel-target-z"></span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Distance:</td>
-                        <td><span id="conv-distance"></span> blocks</td>
-                    </tr>
-                </table>
+
+            <div class="input-section">
+                <div class="section-title">Target Location</div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="targetX">X Coordinate</label>
+                        <input type="number" id="targetX" step="0.01" placeholder="Enter target X">
+                    </div>
+                    <div class="input-group">
+                        <label for="targetZ">Z Coordinate</label>
+                        <input type="number" id="targetZ" step="0.01" placeholder="Enter target Z">
+                    </div>
+                </div>
             </div>
-        </div>
-        
-        <div class="main-calculator">
-            <h2>Pearl Cannon Setup Calculator</h2>
-            
-            <div class="coordinate-section">
-                <h3>Cannon Configuration</h3>
-                <label for="machine-x">Machine X Coordinate:</label>
-                <input type="number" id="machine-x" value="1001" placeholder="Enter machine X">
-                
-                <label for="machine-z">Machine Z Coordinate:</label>
-                <input type="number" id="machine-z" value="1026" placeholder="Enter machine Z">
-                
-                <label for="calculation-mode">Calculation Mode:</label>
-                <select id="calculation-mode">
-                    <option value="target">Target Coordinates</option>
-                    <option value="distance">Distance from Machine</option>
-                </select>
+
+            <button class="calculate-btn" onclick="calculateCharges()">Calculate</button>
+
+            <div id="results" class="results" style="display: none;">
+                <div class="results-header">Required Charges</div>
+                <div class="result-grid">
+                    <div class="result-item">
+                        <span class="machine-name">+X Machine (East)</span>
+                        <span id="plusX" class="charges-badge">0</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="machine-name">-X Machine (West)</span>
+                        <span id="minusX" class="charges-badge">0</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="machine-name">+Z Machine (South)</span>
+                        <span id="plusZ" class="charges-badge">0</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="machine-name">-Z Machine (North)</span>
+                        <span id="minusZ" class="charges-badge">0</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="machine-name">Total Items Needed</span>
+                        <span id="total" class="charges-badge">0</span>
+                    </div>
+                </div>
+                <div id="activeInstructions" style="margin-top: 16px; padding: 16px; background: #f0f9ff; border-radius: 6px; color: #0369a1; font-weight: 600; text-align: center;"></div>
             </div>
-            
-            <div id="target-mode" class="coordinate-section">
-                <h3>Target Information</h3>
-                <label for="target-x">Target X Coordinate:</label>
-                <input type="number" id="target-x" placeholder="Enter target X">
-                
-                <label for="target-z">Target Z Coordinate:</label>
-                <input type="number" id="target-z" placeholder="Enter target Z">
-            </div>
-            
-            <div id="distance-mode" class="coordinate-section hidden">
-                <h3>Distance Information</h3>
-                <label for="target-distance">Distance from Machine:</label>
-                <input type="number" id="target-distance" placeholder="Enter distance in blocks">
-                
-                <label for="target-angle">Angle (degrees from +X axis):</label>
-                <input type="number" id="target-angle" placeholder="Enter angle (0-360)" min="0" max="360">
-            </div>
-            
-            <button onclick="calculateCharges()">Calculate Required Charges</button>
-            
-            <div id="calculation-results" class="results hidden">
-                <h3>Calculation Results</h3>
-                <div id="results-content"></div>
-            </div>
+
+            <div id="error" class="error" style="display: none;"></div>
         </div>
     </div>
 
     <script>
-        // Pearl cannon trajectory data (charges 1-32 with landing coordinates from +X machine)
-        const trajectoryData = [
-            {charge: 1, x: 967.63, z: 1059.38},
-            {charge: 2, x: 929.48, z: 1097.51},
-            {charge: 3, x: 886.13, z: 1140.87},
-            {charge: 4, x: 837.12, z: 1189.89},
-            {charge: 5, x: 782.05, z: 1244.95},
-            {charge: 6, x: 720.51, z: 1306.49},
-            {charge: 7, x: 652.20, z: 1374.79},
-            {charge: 8, x: 576.79, z: 1450.21},
-            {charge: 9, x: 494.01, z: 1533.00},
-            {charge: 10, x: 403.62, z: 1623.37},
-            {charge: 11, x: 305.43, z: 1721.57},
-            {charge: 12, x: 199.28, z: 1827.74},
-            {charge: 13, x: 85.00, z: 1941.99},
-            {charge: 14, x: -37.52, z: 2064.52},
-            {charge: 15, x: -168.37, z: 2195.35},
-            {charge: 16, x: -307.65, z: 2334.65},
-            {charge: 17, x: -455.44, z: 2482.45},
-            {charge: 18, x: -611.79, z: 2638.79},
-            {charge: 19, x: -776.74, z: 2803.76},
-            {charge: 20, x: -950.35, z: 2977.35},
-            {charge: 21, x: -1132.66, z: 3159.65},
-            {charge: 22, x: -1323.69, z: 3350.69},
-            {charge: 23, x: -1523.46, z: 3550.48},
-            {charge: 24, x: -1731.99, z: 3759.02},
-            {charge: 25, x: -1949.34, z: 3976.30},
-            {charge: 26, x: -2175.46, z: 4202.44},
-            {charge: 27, x: -2410.41, z: 4437.42},
-            {charge: 28, x: -2654.21, z: 4681.20},
-            {charge: 29, x: -2906.83, z: 4933.82},
-            {charge: 30, x: -3168.28, z: 5195.25},
-            {charge: 31, x: -3438.62, z: 5465.61},
-            {charge: 32, x: -3717.81, z: 5744.81}
-        ];
-
-        // Machine position
-        const machinePos = {x: 1001.0, z: 1026.0};
-
-        // Convert trajectory data to relative coordinates and distances
-        const relativeTrajectory = trajectoryData.map(point => {
-            const relX = point.x - machinePos.x;
-            const relZ = point.z - machinePos.z;
-            const distance = Math.sqrt(relX * relX + relZ * relZ);
-            return {
-                charge: point.charge,
-                relX: relX,
-                relZ: relZ,
-                distance: distance,
-                absX: point.x,
-                absZ: point.z
-            };
-        });
-
-        // Generate trajectory data for all four machine directions
-        const allDirectionTrajectories = {
-            '+X': relativeTrajectory.map(p => ({...p, direction: '+X'})),
-            '-X': relativeTrajectory.map(p => ({
-                ...p,
-                relX: -p.relX,
-                relZ: -p.relZ,
-                direction: '-X'
-            })),
-            '+Z': relativeTrajectory.map(p => ({
-                ...p,
-                relX: p.relZ,
-                relZ: -p.relX,
-                direction: '+Z'
-            })),
-            '-Z': relativeTrajectory.map(p => ({
-                ...p,
-                relX: -p.relZ,
-                relZ: p.relX,
-                direction: '-Z'
-            }))
+        // Landing positions from +X machine (charges: [deltaX, deltaZ] from machine at 1001, 1026)
+        const landingData = {
+            0: [967.63 - 1001, 1059.38 - 1026],   // [-33.37, 33.38]
+            1: [929.48 - 1001, 1097.51 - 1026],   // [-71.52, 71.51]
+            2: [886.13 - 1001, 1140.87 - 1026],   // [-114.87, 114.87]
+            3: [837.12 - 1001, 1189.89 - 1026],   // [-163.88, 163.89]
+            4: [782.05 - 1001, 1244.95 - 1026],   // [-218.95, 218.95]
+            5: [720.51 - 1001, 1306.49 - 1026],   // [-280.49, 280.49]
+            6: [652.20 - 1001, 1374.79 - 1026],   // [-348.80, 348.79]
+            7: [576.79 - 1001, 1450.21 - 1026],   // [-424.21, 424.21]
+            8: [494.01 - 1001, 1533.00 - 1026],   // [-506.99, 507.00]
+            9: [403.62 - 1001, 1623.37 - 1026],   // [-597.38, 597.37]
+            10: [305.43 - 1001, 1721.57 - 1026],  // [-695.57, 695.57]
+            11: [199.28 - 1001, 1827.74 - 1026],  // [-801.72, 801.74]
+            12: [85.00 - 1001, 1941.99 - 1026],   // [-916.00, 915.99]
+            13: [-37.52 - 1001, 2064.52 - 1026],  // [-1038.52, 1038.52]
+            14: [-168.37 - 1001, 2195.35 - 1026], // [-1169.37, 1169.35]
+            15: [-307.65 - 1001, 2334.65 - 1026], // [-1308.65, 1308.65]
+            16: [-455.44 - 1001, 2482.45 - 1026], // [-1456.44, 1456.45]
+            17: [-611.79 - 1001, 2638.79 - 1026], // [-1612.79, 1612.79]
+            18: [-776.74 - 1001, 2803.76 - 1026], // [-1777.74, 1777.76]
+            19: [-950.35 - 1001, 2977.35 - 1026], // [-1951.35, 1951.35]
+            20: [-1132.66 - 1001, 3159.65 - 1026], // [-2133.66, 2133.65]
+            21: [-1323.69 - 1001, 3350.69 - 1026], // [-2324.69, 2324.69]
+            22: [-1523.46 - 1001, 3550.48 - 1026], // [-2524.46, 2524.48]
+            23: [-1731.99 - 1001, 3759.02 - 1026], // [-2732.99, 2733.02]
+            24: [-1949.34 - 1001, 3976.30 - 1026], // [-2950.34, 2950.30]
+            25: [-2175.46 - 1001, 4202.44 - 1026], // [-3176.46, 3176.44]
+            26: [-2410.41 - 1001, 4437.42 - 1026], // [-3411.41, 3411.42]
+            27: [-2654.21 - 1001, 4681.20 - 1026], // [-3655.21, 3655.20]
+            28: [-2906.83 - 1001, 4933.82 - 1026], // [-3907.83, 3907.82]
+            29: [-3168.28 - 1001, 5195.25 - 1026], // [-4169.28, 4169.25]
+            30: [-3438.62 - 1001, 5465.61 - 1026], // [-4439.62, 4439.61]
+            31: [-3717.81 - 1001, 5744.81 - 1026]  // [-4718.81, 4718.81]
         };
 
-        function determineOptimalDirection(targetX, targetZ, machineX, machineZ) {
-            const relX = targetX - machineX;
-            const relZ = targetZ - machineZ;
+        function interpolateCharges(targetDistance) {
+            // Use X-axis distance for interpolation (since data is from +X machine)
+            const absDistance = Math.abs(targetDistance);
             
-            // Determine primary direction based on largest component
-            const absX = Math.abs(relX);
-            const absZ = Math.abs(relZ);
-            
-            // Calculate angle for reference
-            const angle = Math.atan2(relZ, relX) * (180 / Math.PI);
-            const normalizedAngle = angle < 0 ? angle + 360 : angle;
-            
-            // Determine best machine direction
-            let primaryDirection = '';
-            if (absX >= absZ) {
-                primaryDirection = relX > 0 ? '+X' : '-X';
-            } else {
-                primaryDirection = relZ > 0 ? '+Z' : '-Z';
+            // Find exact match first
+            for (let charges in landingData) {
+                if (Math.abs(Math.abs(landingData[charges][0]) - absDistance) < 0.01) {
+                    return parseInt(charges);
+                }
             }
-            
-            return {
-                primary: primaryDirection,
-                angle: normalizedAngle,
-                relX: relX,
-                relZ: relZ
-            };
-        }
 
-        function convertCoordinates() {
-            const machineX = parseFloat(document.getElementById('conv-machine-x').value) || 0;
-            const machineZ = parseFloat(document.getElementById('conv-machine-z').value) || 0;
-            
-            const targetX = parseFloat(document.getElementById('conv-target-x').value) || 0;
-            const targetZ = parseFloat(document.getElementById('conv-target-z').value) || 0;
-            
-            const relX = targetX - machineX;
-            const relZ = targetZ - machineZ;
-            const distance = Math.sqrt(relX * relX + relZ * relZ);
-            
-            document.getElementById('rel-target-x').textContent = relX.toFixed(2);
-            document.getElementById('rel-target-z').textContent = relZ.toFixed(2);
-            document.getElementById('conv-distance').textContent = distance.toFixed(2);
-            
-            document.getElementById('converter-results').classList.remove('hidden');
-        }
-
-        function toggleCalculationMode() {
-            const mode = document.getElementById('calculation-mode').value;
-            const targetMode = document.getElementById('target-mode');
-            const distanceMode = document.getElementById('distance-mode');
-            
-            if (mode === 'target') {
-                targetMode.classList.remove('hidden');
-                distanceMode.classList.add('hidden');
-            } else {
-                targetMode.classList.add('hidden');
-                distanceMode.classList.remove('hidden');
-            }
-        }
-
-        function findBestCharges(targetX, targetZ, machineX, machineZ) {
-            const relTargetX = targetX - machineX;
-            const relTargetZ = targetZ - machineZ;
-            const targetDistance = Math.sqrt(relTargetX * relTargetX + relTargetZ * relTargetZ);
-            
-            // Determine optimal direction
-            const directionInfo = determineOptimalDirection(targetX, targetZ, machineX, machineZ);
-            
-            // Search all directions but prioritize the optimal one
-            const allResults = {};
-            const directions = ['+X', '-X', '+Z', '-Z'];
-            
-            directions.forEach(direction => {
-                const trajectory = allDirectionTrajectories[direction];
-                let exactMatch = null;
-                let closestOptions = [];
-                let minDistance = Infinity;
+            // Find bracketing points
+            let lower = null, upper = null;
+            for (let charges in landingData) {
+                const dataDistance = Math.abs(landingData[charges][0]);
                 
-                trajectory.forEach(point => {
-                    const distance = Math.sqrt(
-                        Math.pow(point.relX - relTargetX, 2) + 
-                        Math.pow(point.relZ - relTargetZ, 2)
-                    );
-                    
-                    if (distance < 1.0) { // Within 1 block = close enough for exact
-                        if (!exactMatch || distance < exactMatch.error) {
-                            exactMatch = {
-                                ...point,
-                                error: distance
-                            };
-                        }
-                    }
-                    
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                        closestOptions = [{
-                            ...point,
-                            error: distance
-                        }];
-                    } else if (Math.abs(distance - minDistance) < 0.1) {
-                        closestOptions.push({
-                            ...point,
-                            error: distance
-                        });
-                    }
-                });
-                
-                allResults[direction] = {
-                    exact: exactMatch,
-                    closest: closestOptions.slice(0, 3),
-                    trajectory: trajectory
-                };
-            });
-            
-            // Find the best overall result
-            let bestExact = null;
-            let bestClosest = [];
-            let allExact = [];
-            let allClosest = [];
-            
-            directions.forEach(direction => {
-                const result = allResults[direction];
-                if (result.exact) {
-                    allExact.push(result.exact);
-                    if (!bestExact || result.exact.error < bestExact.error) {
-                        bestExact = result.exact;
+                if (dataDistance <= absDistance) {
+                    if (!lower || dataDistance > Math.abs(landingData[lower][0])) {
+                        lower = charges;
                     }
                 }
-                allClosest.push(...result.closest);
-            });
-            
-            // Sort all closest options
-            allClosest.sort((a, b) => a.error - b.error);
-            bestClosest = allClosest.slice(0, 5);
-            
-            // Try interpolation on the optimal direction
-            let interpolatedResult = null;
-            if (!bestExact) {
-                interpolatedResult = attemptInterpolation(relTargetX, relTargetZ, directionInfo.primary);
-            }
-            
-            return {
-                exact: bestExact,
-                allExact: allExact.filter(e => e.error < 5.0), // Show all exact matches within 5 blocks
-                closest: bestClosest,
-                interpolated: interpolatedResult,
-                targetDistance: targetDistance,
-                optimalDirection: directionInfo.primary,
-                directionInfo: directionInfo
-            };
-        }
-
-        function attemptInterpolation(targetX, targetZ, direction = '+X') {
-            const trajectory = allDirectionTrajectories[direction];
-            
-            // Find two consecutive charges that bracket the target
-            for (let i = 0; i < trajectory.length - 1; i++) {
-                const p1 = trajectory[i];
-                const p2 = trajectory[i + 1];
-                
-                // Check if target is roughly between these two points
-                const dist1 = Math.sqrt(Math.pow(p1.relX - targetX, 2) + Math.pow(p1.relZ - targetZ, 2));
-                const dist2 = Math.sqrt(Math.pow(p2.relX - targetX, 2) + Math.pow(p2.relZ - targetZ, 2));
-                
-                if (dist1 < 100 && dist2 < 100) { // Both points reasonably close
-                    // Linear interpolation
-                    const dx = p2.relX - p1.relX;
-                    const dz = p2.relZ - p1.relZ;
-                    
-                    if (dx !== 0 || dz !== 0) {
-                        const targetDx = targetX - p1.relX;
-                        const targetDz = targetZ - p1.relZ;
-                        
-                        // Project target onto line between p1 and p2
-                        const t = Math.max(0, Math.min(1, 
-                            (targetDx * dx + targetDz * dz) / (dx * dx + dz * dz)
-                        ));
-                        
-                        const interpolatedCharge = p1.charge + t * (p2.charge - p1.charge);
-                        const interpX = p1.relX + t * dx;
-                        const interpZ = p1.relZ + t * dz;
-                        
-                        const error = Math.sqrt(
-                            Math.pow(interpX - targetX, 2) + 
-                            Math.pow(interpZ - targetZ, 2)
-                        );
-                        
-                        return {
-                            charge: interpolatedCharge,
-                            chargeRange: `${p1.charge}-${p2.charge}`,
-                            relX: interpX,
-                            relZ: interpZ,
-                            error: error,
-                            direction: direction
-                        };
+                if (dataDistance >= absDistance) {
+                    if (!upper || dataDistance < Math.abs(landingData[upper][0])) {
+                        upper = charges;
                     }
                 }
             }
-            return null;
+
+            if (!lower && !upper) return 0;
+            if (!lower) return parseInt(upper);
+            if (!upper) return parseInt(lower);
+            if (lower === upper) return parseInt(lower);
+
+            // Linear interpolation
+            const lowerDist = Math.abs(landingData[lower][0]);
+            const upperDist = Math.abs(landingData[upper][0]);
+            const t = (absDistance - lowerDist) / (upperDist - lowerDist);
+            const interpolated = parseInt(lower) + t * (parseInt(upper) - parseInt(lower));
+            
+            return Math.max(0, Math.round(interpolated));
         }
 
         function calculateCharges() {
-            const mode = document.getElementById('calculation-mode').value;
-            const machineX = parseFloat(document.getElementById('machine-x').value) || 1001;
-            const machineZ = parseFloat(document.getElementById('machine-z').value) || 1026;
+            const machineX = parseFloat(document.getElementById('machineX').value);
+            const machineZ = parseFloat(document.getElementById('machineZ').value);
+            const targetX = parseFloat(document.getElementById('targetX').value);
+            const targetZ = parseFloat(document.getElementById('targetZ').value);
+
+            if (isNaN(machineX) || isNaN(machineZ) || isNaN(targetX) || isNaN(targetZ)) {
+                showError('Please enter valid coordinates for all fields.');
+                return;
+            }
+
+            hideError();
+
+            // Calculate required distances
+            const deltaX = targetX - machineX;
+            const deltaZ = targetZ - machineZ;
+
+            // Calculate charges for each machine
+            let plusX = 0, minusX = 0, plusZ = 0, minusZ = 0;
+            let activeMachines = [];
+
+            if (deltaX > 0) {
+                plusX = interpolateCharges(deltaX);
+                if (plusX > 0) activeMachines.push('+X');
+            } else if (deltaX < 0) {
+                minusX = interpolateCharges(deltaX);
+                if (minusX > 0) activeMachines.push('-X');
+            }
+
+            if (deltaZ > 0) {
+                plusZ = interpolateCharges(deltaZ);
+                if (plusZ > 0) activeMachines.push('+Z');
+            } else if (deltaZ < 0) {
+                minusZ = interpolateCharges(deltaZ);
+                if (minusZ > 0) activeMachines.push('-Z');
+            }
+
+            // Update display
+            updateResultDisplay('plusX', plusX);
+            updateResultDisplay('minusX', minusX);
+            updateResultDisplay('plusZ', plusZ);
+            updateResultDisplay('minusZ', minusZ);
             
-            let targetX, targetZ;
-            
-            if (mode === 'target') {
-                targetX = parseFloat(document.getElementById('target-x').value);
-                targetZ = parseFloat(document.getElementById('target-z').value);
-                
-                if (isNaN(targetX) || isNaN(targetZ)) {
-                    document.getElementById('results-content').innerHTML = 
-                        '<p class="error">Please enter valid target coordinates.</p>';
-                    document.getElementById('calculation-results').classList.remove('hidden');
-                    return;
-                }
+            const total = plusX + minusX + plusZ + minusZ;
+            document.getElementById('total').textContent = total;
+            document.getElementById('total').className = 'charges-badge active';
+
+            // Show active machines instruction
+            const instructionEl = document.getElementById('activeInstructions');
+            if (activeMachines.length > 0) {
+                instructionEl.textContent = `Use machines: ${activeMachines.join(' and ')}`;
             } else {
-                const distance = parseFloat(document.getElementById('target-distance').value);
-                const angle = parseFloat(document.getElementById('target-angle').value);
-                
-                if (isNaN(distance) || isNaN(angle)) {
-                    document.getElementById('results-content').innerHTML = 
-                        '<p class="error">Please enter valid distance and angle.</p>';
-                    document.getElementById('calculation-results').classList.remove('hidden');
-                    return;
-                }
-                
-                // Convert polar to cartesian
-                const radians = (angle * Math.PI) / 180;
-                targetX = machineX + distance * Math.cos(radians);
-                targetZ = machineZ + distance * Math.sin(radians);
+                instructionEl.textContent = 'Target is at machine location - no charges needed';
             }
-            
-            const results = findBestCharges(targetX, targetZ, machineX, machineZ);
-            displayResults(results, targetX, targetZ, machineX, machineZ);
+
+            document.getElementById('results').style.display = 'block';
         }
 
-        function displayResults(results, targetX, targetZ, machineX, machineZ) {
-            let html = `
-                <div class="distance-info">
-                    <strong>Target:</strong> (${targetX.toFixed(2)}, ${targetZ.toFixed(2)})<br>
-                    <strong>Machine:</strong> (${machineX.toFixed(2)}, ${machineZ.toFixed(2)})<br>
-                    <strong>Distance:</strong> ${results.targetDistance.toFixed(2)} blocks
-                </div>
-            `;
-            
-            if (results.exact) {
-                html += `
-                    <h4 class="exact">🎯 Exact Match Found!</h4>
-                    <table>
-                        <tr><th>Charges</th><th>Landing Position</th><th>Error</th></tr>
-                        <tr>
-                            <td class="exact">${results.exact.charge}</td>
-                            <td>(${(machineX + results.exact.relX).toFixed(2)}, ${(machineZ + results.exact.relZ).toFixed(2)})</td>
-                            <td class="exact">${results.exact.error.toFixed(2)} blocks</td>
-                        </tr>
-                    </table>
-                `;
-            }
-            
-            if (results.interpolated && (!results.exact || results.interpolated.error < results.exact.error)) {
-                html += `
-                    <h4 class="interpolated">📊 Interpolated Solution</h4>
-                    <p class="interpolated">Estimated charges between ${results.interpolated.chargeRange}</p>
-                    <table>
-                        <tr><th>Estimated Charges</th><th>Predicted Position</th><th>Error</th></tr>
-                        <tr>
-                            <td class="interpolated">${results.interpolated.charge.toFixed(2)}</td>
-                            <td>(${(machineX + results.interpolated.relX).toFixed(2)}, ${(machineZ + results.interpolated.relZ).toFixed(2)})</td>
-                            <td class="interpolated">${results.interpolated.error.toFixed(2)} blocks</td>
-                        </tr>
-                    </table>
-                    <p class="warning">⚠️ Interpolated values are estimates. Test with nearby whole number charges.</p>
-                `;
-            }
-            
-            if (results.closest.length > 0) {
-                html += `
-                    <h4>🔍 Closest Options</h4>
-                    <table>
-                        <tr><th>Charges</th><th>Landing Position</th><th>Error</th></tr>
-                `;
-                
-                results.closest.forEach(option => {
-                    html += `
-                        <tr>
-                            <td>${option.charge}</td>
-                            <td>(${(machineX + option.relX).toFixed(2)}, ${(machineZ + option.relZ).toFixed(2)})</td>
-                            <td>${option.error.toFixed(2)} blocks</td>
-                        </tr>
-                    `;
-                });
-                
-                html += '</table>';
-            }
-            
-            document.getElementById('results-content').innerHTML = html;
-            document.getElementById('calculation-results').classList.remove('hidden');
+        function updateResultDisplay(elementId, charges) {
+            const element = document.getElementById(elementId);
+            element.textContent = charges;
+            element.className = charges > 0 ? 'charges-badge active' : 'charges-badge';
         }
 
-        // Event listeners
-        document.getElementById('calculation-mode').addEventListener('change', toggleCalculationMode);
-        
-        // Initialize
-        toggleCalculationMode();
+        function showError(message) {
+            document.getElementById('error').textContent = message;
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+        }
+
+        function hideError() {
+            document.getElementById('error').style.display = 'none';
+        }
+
+        // Enter key support
+        document.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                calculateCharges();
+            }
+        });
     </script>
 </body>
 </html>
