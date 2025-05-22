@@ -1,395 +1,1495 @@
-<!DOCTYPE html>
+# <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ender Pearl Cannon Calculator</title>
+    <title>Monopoly Game Counter</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #16181a;
-            color: #333;
-            line-height: 1.6;
-        }
-        .container {
-            max-width: 600px;
-            margin: 40px auto;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-        .header {
-            background-color: #16181a;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #2c3e50, #34495e);
             color: white;
-            padding: 24px;
-            text-align: center;
+            min-height: 100vh;
+            padding: 20px;
         }
-        h1 {
-            font-size: 24px;
-            font-weight: 600;
-        }
-        .content {
-            padding: 32px;
-        }
-        .input-section {
-            margin-bottom: 32px;
-        }
-        .section-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #4b5563;
-            margin-bottom: 16px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .input-row {
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 16px;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            height: calc(100vh - 40px);
         }
-        .input-group {
+        
+        .sidebar {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .main-content {
             display: flex;
             flex-direction: column;
+            gap: 20px;
         }
-        label {
-            font-size: 14px;
-            color: #6b7280;
-            margin-bottom: 4px;
-            font-weight: 500;
+        
+        .board-container {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 600px;
         }
-        input[type="number"] {
-            padding: 12px;
-            border: 2px solid #e5e7eb;
-            border-radius: 6px;
-            background: #f9fafb;
-            font-size: 16px;
-            transition: all 0.2s;
+        
+        .board {
+            width: 600px;
+            height: 600px;
+            background: #f0f8f0;
+            border: 3px solid #000;
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(11, 1fr);
+            grid-template-rows: repeat(11, 1fr);
         }
-        input[type="number"]:focus {
-            outline: none;
-            border-color: #6b7280;
+        
+        .property {
+            border: 1px solid #000;
             background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            position: relative;
+            color: black;
+            text-align: center;
+            padding: 2px;
         }
-        .calculate-btn {
+        
+        .property:hover {
+            background: #f0f0f0;
+        }
+        
+        .property.owned {
+            background: #ffeb3b;
+        }
+        
+        .corner {
+            font-size: 10px;
+        }
+        
+        .color-strip {
             width: 100%;
-            padding: 16px;
-            background-color: #6b7280;
+            height: 8px;
+            margin-bottom: 2px;
+        }
+        
+        .brown { background: #8B4513; }
+        .light-blue { background: #87CEEB; }
+        .pink { background: #FF69B4; }
+        .orange { background: #FFA500; }
+        .red { background: #FF0000; }
+        .yellow { background: #FFFF00; }
+        .green { background: #008000; }
+        .dark-blue { background: #00008B; }
+        .railroad { background: #000; }
+        .utility { background: #FFF; border: 2px solid #000; }
+        
+        .houses {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: green;
+            color: white;
+            border-radius: 50%;
+            width: 12px;
+            height: 12px;
+            font-size: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .hotel {
+            background: red;
+        }
+        
+        .owner-indicator {
+            position: absolute;
+            bottom: 2px;
+            left: 2px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            border: 1px solid #000;
+        }
+        
+        .setup-section, .players-section, .transfer-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #3498db;
+        }
+        
+        .input-group {
+            margin-bottom: 10px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.9);
+            color: black;
+        }
+        
+        .btn {
+            background: #3498db;
             color: white;
             border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
+            padding: 10px 15px;
+            border-radius: 4px;
             cursor: pointer;
-            transition: background-color 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-size: 14px;
+            width: 100%;
+            margin-top: 5px;
         }
-        .calculate-btn:hover {
-            background-color: #4b5563;
+        
+        .btn:hover {
+            background: #2980b9;
         }
-        .results {
-            margin-top: 32px;
-            background-color: #f9fafb;
+        
+        .btn-danger {
+            background: #e74c3c;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        .player-card {
+            background: rgba(255, 255, 255, 0.15);
             border-radius: 6px;
-            overflow: hidden;
-            border: 1px solid #e5e7eb;
+            padding: 10px;
+            margin-bottom: 10px;
         }
-        .results-header {
-            background-color: #6b7280;
-            color: white;
-            padding: 16px;
-            font-weight: 600;
-            text-align: center;
-        }
-        .result-grid {
-            padding: 24px;
-        }
-        .result-item {
+        
+        .player-name {
+            font-weight: bold;
+            margin-bottom: 5px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #e5e7eb;
+            gap: 10px;
         }
-        .result-item:last-child {
-            border-bottom: none;
-            padding-top: 16px;
-            margin-top: 8px;
-            border-top: 2px solid #e5e7eb;
+        
+        .player-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid white;
         }
-        .machine-name {
-            font-weight: 600;
-            color: #4b5563;
+        
+        .player-money {
+            font-size: 16px;
+            color: #2ecc71;
+            margin-bottom: 5px;
         }
-        .charges-badge {
-            background-color: #6b7280;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 14px;
+        
+        .player-properties {
+            font-size: 12px;
+            opacity: 0.8;
         }
-        .charges-badge.active {
-            background-color: #059669;
+        
+        .transfer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
         }
-        .error {
-            background-color: #fef2f2;
-            border: 1px solid #fecaca;
-            color: #b91c1c;
-            padding: 16px;
-            border-radius: 6px;
-            margin-top: 16px;
-            text-align: center;
+        
+        .property-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
         }
-        .info-box {
-            background-color: #f0f9ff;
-            border: 1px solid #bae6fd;
-            padding: 16px;
-            border-radius: 6px;
-            margin-bottom: 24px;
-            font-size: 14px;
-            color: #0369a1;
+        
+        .modal-content {
+            background: white;
+            color: black;
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+            max-width: 90%;
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+            }
+            
+            .sidebar {
+                height: auto;
+                max-height: 400px;
+            }
+            
+            .board {
+                width: 500px;
+                height: 500px;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .board {
+                width: 350px;
+                height: 350px;
+            }
+            
+            .property {
+                font-size: 6px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>Ender Pearl Cannon Calculator</h1>
+        <div class="sidebar">
+            <div class="setup-section">
+                <div class="section-title">Game Setup</div>
+                <div class="input-group">
+                    <label>Number of Players:</label>
+                    <input type="number" id="numPlayers" min="2" max="8" value="4">
+                </div>
+                <button class="btn" onclick="setupGame()">Start New Game</button>
+            </div>
+            
+            <div class="players-section" id="playersSection" style="display: none;">
+                <div class="section-title">Players</div>
+                <div id="playersList"></div>
+            </div>
+            
+            <div class="transfer-section" id="transferSection" style="display: none;">
+                <div class="section-title">Transfer Money</div>
+                <div class="transfer-grid">
+                    <div class="input-group">
+                        <label>From:</label>
+                        <select id="fromPlayer"></select>
+                    </div>
+                    <div class="input-group">
+                        <label>To:</label>
+                        <select id="toPlayer"></select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Amount:</label>
+                    <input type="number" id="transferAmount" min="1">
+                </div>
+                <button class="btn" onclick="transferMoney()">Transfer</button>
+            </div>
         </div>
         
-        <div class="content">
-            <div class="info-box">
-                <strong>Note:</strong> The charge data is based on the +X machine. Enter machine and target coordinates to calculate required charges for each direction.
+        <div class="main-content">
+            <div class="board-container">
+                <div class="board" id="gameBoard"></div>
             </div>
-
-            <div class="input-section">
-                <div class="section-title">Machine Location</div>
-                <div class="input-row">
-                    <div class="input-group">
-                        <label for="machineX">X Coordinate</label>
-                        <input type="number" id="machineX" value="1001" step="0.01">
-                    </div>
-                    <div class="input-group">
-                        <label for="machineZ">Z Coordinate</label>
-                        <input type="number" id="machineZ" value="1026" step="0.01">
-                    </div>
-                </div>
-            </div>
-
-            <div class="input-section">
-                <div class="section-title">Target Location</div>
-                <div class="input-row">
-                    <div class="input-group">
-                        <label for="targetX">X Coordinate</label>
-                        <input type="number" id="targetX" step="0.01" placeholder="Enter target X">
-                    </div>
-                    <div class="input-group">
-                        <label for="targetZ">Z Coordinate</label>
-                        <input type="number" id="targetZ" step="0.01" placeholder="Enter target Z">
-                    </div>
-                </div>
-            </div>
-
-            <button class="calculate-btn" onclick="calculateCharges()">Calculate</button>
-
-            <div id="results" class="results" style="display: none;">
-                <div class="results-header">Required Charges</div>
-                <div class="result-grid">
-                    <div class="result-item">
-                        <span class="machine-name">+X Machine (East)</span>
-                        <span id="plusX" class="charges-badge">0</span>
-                    </div>
-                    <div class="result-item">
-                        <span class="machine-name">-X Machine (West)</span>
-                        <span id="minusX" class="charges-badge">0</span>
-                    </div>
-                    <div class="result-item">
-                        <span class="machine-name">+Z Machine (South)</span>
-                        <span id="plusZ" class="charges-badge">0</span>
-                    </div>
-                    <div class="result-item">
-                        <span class="machine-name">-Z Machine (North)</span>
-                        <span id="minusZ" class="charges-badge">0</span>
-                    </div>
-                    <div class="result-item">
-                        <span class="machine-name">Total Items Needed</span>
-                        <span id="total" class="charges-badge">0</span>
-                    </div>
-                </div>
-                <div id="activeInstructions" style="margin-top: 16px; padding: 16px; background: #f0f9ff; border-radius: 6px; color: #0369a1; font-weight: 600; text-align: center;"></div>
-            </div>
-
-            <div id="error" class="error" style="display: none;"></div>
+        </div>
+    </div>
+    
+    <div class="property-modal" id="propertyModal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+            <div class="modal-title" id="modalTitle"></div>
+            <div id="modalContent"></div>
         </div>
     </div>
 
     <script>
-        // Landing positions from +X machine (charges: [deltaX, deltaZ] from machine at 1001, 1026)
-        const landingData = {
-            0: [967.63 - 1001, 1059.38 - 1026],   // [-33.37, 33.38]
-            1: [929.48 - 1001, 1097.51 - 1026],   // [-71.52, 71.51]
-            2: [886.13 - 1001, 1140.87 - 1026],   // [-114.87, 114.87]
-            3: [837.12 - 1001, 1189.89 - 1026],   // [-163.88, 163.89]
-            4: [782.05 - 1001, 1244.95 - 1026],   // [-218.95, 218.95]
-            5: [720.51 - 1001, 1306.49 - 1026],   // [-280.49, 280.49]
-            6: [652.20 - 1001, 1374.79 - 1026],   // [-348.80, 348.79]
-            7: [576.79 - 1001, 1450.21 - 1026],   // [-424.21, 424.21]
-            8: [494.01 - 1001, 1533.00 - 1026],   // [-506.99, 507.00]
-            9: [403.62 - 1001, 1623.37 - 1026],   // [-597.38, 597.37]
-            10: [305.43 - 1001, 1721.57 - 1026],  // [-695.57, 695.57]
-            11: [199.28 - 1001, 1827.74 - 1026],  // [-801.72, 801.74]
-            12: [85.00 - 1001, 1941.99 - 1026],   // [-916.00, 915.99]
-            13: [-37.52 - 1001, 2064.52 - 1026],  // [-1038.52, 1038.52]
-            14: [-168.37 - 1001, 2195.35 - 1026], // [-1169.37, 1169.35]
-            15: [-307.65 - 1001, 2334.65 - 1026], // [-1308.65, 1308.65]
-            16: [-455.44 - 1001, 2482.45 - 1026], // [-1456.44, 1456.45]
-            17: [-611.79 - 1001, 2638.79 - 1026], // [-1612.79, 1612.79]
-            18: [-776.74 - 1001, 2803.76 - 1026], // [-1777.74, 1777.76]
-            19: [-950.35 - 1001, 2977.35 - 1026], // [-1951.35, 1951.35]
-            20: [-1132.66 - 1001, 3159.65 - 1026], // [-2133.66, 2133.65]
-            21: [-1323.69 - 1001, 3350.69 - 1026], // [-2324.69, 2324.69]
-            22: [-1523.46 - 1001, 3550.48 - 1026], // [-2524.46, 2524.48]
-            23: [-1731.99 - 1001, 3759.02 - 1026], // [-2732.99, 2733.02]
-            24: [-1949.34 - 1001, 3976.30 - 1026], // [-2950.34, 2950.30]
-            25: [-2175.46 - 1001, 4202.44 - 1026], // [-3176.46, 3176.44]
-            26: [-2410.41 - 1001, 4437.42 - 1026], // [-3411.41, 3411.42]
-            27: [-2654.21 - 1001, 4681.20 - 1026], // [-3655.21, 3655.20]
-            28: [-2906.83 - 1001, 4933.82 - 1026], // [-3907.83, 3907.82]
-            29: [-3168.28 - 1001, 5195.25 - 1026], // [-4169.28, 4169.25]
-            30: [-3438.62 - 1001, 5465.61 - 1026], // [-4439.62, 4439.61]
-            31: [-3717.81 - 1001, 5744.81 - 1026]  // [-4718.81, 4718.81]
-        };
-
-        function interpolateCharges(targetDistance) {
-            // Use X-axis distance for interpolation (since data is from +X machine)
-            const absDistance = Math.abs(targetDistance);
+        const PLAYER_COLORS = ['#FF0000', '#0000FF', '#00FF00', '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500', '#800080'];
+        
+        const PROPERTIES = [
+            // Bottom row (left to right)
+            {name: 'GO', type: 'corner', position: [10, 10]},
+            {name: 'Mediterranean Ave', type: 'property', color: 'brown', price: 60, position: [10, 9]},
+            {name: 'Community Chest', type: 'chest', position: [10, 8]},
+            {name: 'Baltic Ave', type: 'property', color: 'brown', price: 60, position: [10, 7]},
+            {name: 'Income Tax', type: 'tax', position: [10, 6]},
+            {name: 'Reading Railroad', type: 'railroad', price: 200, position: [10, 5]},
+            {name: 'Oriental Ave', type: 'property', color: 'light-blue', price: 100, position: [10, 4]},
+            {name: 'Chance', type: 'chance', position: [10, 3]},
+            {name: 'Vermont Ave', type: 'property', color: 'light-blue', price: 100, position: [10, 2]},
+            {name: 'Connecticut Ave', type: 'property', color: 'light-blue', price: 120, position: [10, 1]},
+            {name: 'JAIL', type: 'corner', position: [10, 0]},
             
-            // Find exact match first
-            for (let charges in landingData) {
-                if (Math.abs(Math.abs(landingData[charges][0]) - absDistance) < 0.01) {
-                    return parseInt(charges);
-                }
-            }
-
-            // Find bracketing points
-            let lower = null, upper = null;
-            for (let charges in landingData) {
-                const dataDistance = Math.abs(landingData[charges][0]);
-                
-                if (dataDistance <= absDistance) {
-                    if (!lower || dataDistance > Math.abs(landingData[lower][0])) {
-                        lower = charges;
-                    }
-                }
-                if (dataDistance >= absDistance) {
-                    if (!upper || dataDistance < Math.abs(landingData[upper][0])) {
-                        upper = charges;
-                    }
-                }
-            }
-
-            if (!lower && !upper) return 0;
-            if (!lower) return parseInt(upper);
-            if (!upper) return parseInt(lower);
-            if (lower === upper) return parseInt(lower);
-
-            // Linear interpolation
-            const lowerDist = Math.abs(landingData[lower][0]);
-            const upperDist = Math.abs(landingData[upper][0]);
-            const t = (absDistance - lowerDist) / (upperDist - lowerDist);
-            const interpolated = parseInt(lower) + t * (parseInt(upper) - parseInt(lower));
+            // Left side (bottom to top)
+            {name: 'St. Charles Place', type: 'property', color: 'pink', price: 140, position: [9, 0]},
+            {name: 'Electric Company', type: 'utility', price: 150, position: [8, 0]},
+            {name: 'States Ave', type: 'property', color: 'pink', price: 140, position: [7, 0]},
+            {name: 'Virginia Ave', type: 'property', color: 'pink', price: 160, position: [6, 0]},
+            {name: 'Pennsylvania Railroad', type: 'railroad', price: 200, position: [5, 0]},
+            {name: 'St. James Place', type: 'property', color: 'orange', price: 180, position: [4, 0]},
+            {name: 'Community Chest', type: 'chest', position: [3, 0]},
+            {name: 'Tennessee Ave', type: 'property', color: 'orange', price: 180, position: [2, 0]},
+            {name: 'New York Ave', type: 'property', color: 'orange', price: 200, position: [1, 0]},
+            {name: 'FREE PARKING', type: 'corner', position: [0, 0]},
             
-            return Math.max(0, Math.round(interpolated));
+            // Top side (left to right)
+            {name: 'Kentucky Ave', type: 'property', color: 'red', price: 220, position: [0, 1]},
+            {name: 'Chance', type: 'chance', position: [0, 2]},
+            {name: 'Indiana Ave', type: 'property', color: 'red', price: 220, position: [0, 3]},
+            {name: 'Illinois Ave', type: 'property', color: 'red', price: 240, position: [0, 4]},
+            {name: 'B&O Railroad', type: 'railroad', price: 200, position: [0, 5]},
+            {name: 'Atlantic Ave', type: 'property', color: 'yellow', price: 260, position: [0, 6]},
+            {name: 'Ventnor Ave', type: 'property', color: 'yellow', price: 260, position: [0, 7]},
+            {name: 'Water Works', type: 'utility', price: 150, position: [0, 8]},
+            {name: 'Marvin Gardens', type: 'property', color: 'yellow', price: 280, position: [0, 9]},
+            {name: 'GO TO JAIL', type: 'corner', position: [0, 10]},
+            
+            // Right side (top to bottom)
+            {name: 'Pacific Ave', type: 'property', color: 'green', price: 300, position: [1, 10]},
+            {name: 'North Carolina Ave', type: 'property', color: 'green', price: 300, position: [2, 10]},
+            {name: 'Community Chest', type: 'chest', position: [3, 10]},
+            {name: 'Pennsylvania Ave', type: 'property', color: 'green', price: 320, position: [4, 10]},
+            {name: 'Short Line Railroad', type: 'railroad', price: 200, position: [5, 10]},
+            {name: 'Chance', type: 'chance', position: [6, 10]},
+            {name: 'Park Place', type: 'property', color: 'dark-blue', price: 350, position: [7, 10]},
+            {name: 'Luxury Tax', type: 'tax', position: [8, 10]},
+            {name: 'Boardwalk', type: 'property', color: 'dark-blue', price: 400, position: [9, 10]}
+        ];
+        
+        let players = [];
+        let gameStarted = false;
+        
+        function setupGame() {
+            const numPlayers = parseInt(document.getElementById('numPlayers').value);
+            players = [];
+            
+            for (let i = 0; i < numPlayers; i++) {
+                players.push({
+                    id: i,
+                    name: `Player ${i + 1}`,
+                    money: 1500,
+                    color: PLAYER_COLORS[i],
+                    properties: [],
+                    houses: {}
+                });
+            }
+            
+            gameStarted = true;
+            updatePlayersDisplay();
+            updateTransferSelects();
+            createBoard();
+            
+            document.getElementById('playersSection').style.display = 'block';
+            document.getElementById('transferSection').style.display = 'block';
         }
-
-        function calculateCharges() {
-            const machineX = parseFloat(document.getElementById('machineX').value);
-            const machineZ = parseFloat(document.getElementById('machineZ').value);
-            const targetX = parseFloat(document.getElementById('targetX').value);
-            const targetZ = parseFloat(document.getElementById('targetZ').value);
-
-            if (isNaN(machineX) || isNaN(machineZ) || isNaN(targetX) || isNaN(targetZ)) {
-                showError('Please enter valid coordinates for all fields.');
+        
+        function updatePlayersDisplay() {
+            const playersList = document.getElementById('playersList');
+            playersList.innerHTML = '';
+            
+            players.forEach(player => {
+                const playerCard = document.createElement('div');
+                playerCard.className = 'player-card';
+                
+                const ownedProperties = player.properties.map(prop => prop.name).join(', ') || 'None';
+                
+                playerCard.innerHTML = `
+                    <div class="player-name">
+                        <div class="player-color" style="background-color: ${player.color}"></div>
+                        <input type="text" value="${player.name}" onchange="updatePlayerName(${player.id}, this.value)" style="background: transparent; border: none; color: white; font-weight: bold;">
+                    </div>
+                    <div class="player-money">$${player.money}</div>
+                    <div class="player-properties">Properties: ${ownedProperties}</div>
+                    <div style="display: flex; gap: 5px; margin-top: 5px;">
+                        <button class="btn" style="padding: 5px; font-size: 12px;" onclick="adjustMoney(${player.id}, 50)">+$50</button>
+                        <button class="btn" style="padding: 5px; font-size: 12px;" onclick="adjustMoney(${player.id}, 200)">+$200</button>
+                        <button class="btn btn-danger" style="padding: 5px; font-size: 12px;" onclick="adjustMoney(${player.id}, -50)">-$50</button>
+                    </div>
+                `;
+                
+                playersList.appendChild(playerCard);
+            });
+        }
+        
+        function updatePlayerName(playerId, newName) {
+            players[playerId].name = newName;
+            updateTransferSelects();
+        }
+        
+        function adjustMoney(playerId, amount) {
+            players[playerId].money += amount;
+            if (players[playerId].money < 0) players[playerId].money = 0;
+            updatePlayersDisplay();
+        }
+        
+        function updateTransferSelects() {
+            const fromSelect = document.getElementById('fromPlayer');
+            const toSelect = document.getElementById('toPlayer');
+            
+            fromSelect.innerHTML = '';
+            toSelect.innerHTML = '';
+            
+            players.forEach(player => {
+                const option1 = document.createElement('option');
+                option1.value = player.id;
+                option1.textContent = player.name;
+                fromSelect.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = player.id;
+                option2.textContent = player.name;
+                toSelect.appendChild(option2);
+            });
+        }
+        
+        function transferMoney() {
+            const fromId = parseInt(document.getElementById('fromPlayer').value);
+            const toId = parseInt(document.getElementById('toPlayer').value);
+            const amount = parseInt(document.getElementById('transferAmount').value);
+            
+            if (fromId === toId) {
+                alert('Cannot transfer to the same player!');
                 return;
             }
-
-            hideError();
-
-            // Calculate required distances
-            const deltaX = targetX - machineX;
-            const deltaZ = targetZ - machineZ;
-
-            // Calculate charges for each machine
-            let plusX = 0, minusX = 0, plusZ = 0, minusZ = 0;
-            let activeMachines = [];
-
-            if (deltaX > 0) {
-                plusX = interpolateCharges(deltaX);
-                if (plusX > 0) activeMachines.push('+X');
-            } else if (deltaX < 0) {
-                minusX = interpolateCharges(deltaX);
-                if (minusX > 0) activeMachines.push('-X');
-            }
-
-            if (deltaZ > 0) {
-                plusZ = interpolateCharges(deltaZ);
-                if (plusZ > 0) activeMachines.push('+Z');
-            } else if (deltaZ < 0) {
-                minusZ = interpolateCharges(deltaZ);
-                if (minusZ > 0) activeMachines.push('-Z');
-            }
-
-            // Update display
-            updateResultDisplay('plusX', plusX);
-            updateResultDisplay('minusX', minusX);
-            updateResultDisplay('plusZ', plusZ);
-            updateResultDisplay('minusZ', minusZ);
             
-            const total = plusX + minusX + plusZ + minusZ;
-            document.getElementById('total').textContent = total;
-            document.getElementById('total').className = 'charges-badge active';
-
-            // Show active machines instruction
-            const instructionEl = document.getElementById('activeInstructions');
-            if (activeMachines.length > 0) {
-                instructionEl.textContent = `Use machines: ${activeMachines.join(' and ')}`;
-            } else {
-                instructionEl.textContent = 'Target is at machine location - no charges needed';
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid amount!');
+                return;
             }
-
-            document.getElementById('results').style.display = 'block';
+            
+            if (players[fromId].money < amount) {
+                alert('Insufficient funds!');
+                return;
+            }
+            
+            players[fromId].money -= amount;
+            players[toId].money += amount;
+            
+            document.getElementById('transferAmount').value = '';
+            updatePlayersDisplay();
         }
-
-        function updateResultDisplay(elementId, charges) {
-            const element = document.getElementById(elementId);
-            element.textContent = charges;
-            element.className = charges > 0 ? 'charges-badge active' : 'charges-badge';
+        
+        function createBoard() {
+            const board = document.getElementById('gameBoard');
+            board.innerHTML = '';
+            
+            // Create 11x11 grid
+            for (let row = 0; row < 11; row++) {
+                for (let col = 0; col < 11; col++) {
+                    const cell = document.createElement('div');
+                    
+                    // Find property at this position
+                    const property = PROPERTIES.find(p => p.position[0] === row && p.position[1] === col);
+                    
+                    if (property) {
+                        cell.className = `property ${property.type === 'corner' ? 'corner' : ''}`;
+                        cell.onclick = () => openPropertyModal(property);
+                        
+                        if (property.color) {
+                            const colorStrip = document.createElement('div');
+                            colorStrip.className = `color-strip ${property.color}`;
+                            cell.appendChild(colorStrip);
+                        }
+                        
+                        const nameDiv = document.createElement('div');
+                        nameDiv.textContent = property.name;
+                        cell.appendChild(nameDiv);
+                        
+                        if (property.price) {
+                            const priceDiv = document.createElement('div');
+                            priceDiv.textContent = `$${property.price}`;
+                            priceDiv.style.fontSize = '7px';
+                            cell.appendChild(priceDiv);
+                        }
+                        
+                        cell.id = `property-${PROPERTIES.indexOf(property)}`;
+                    } else if ((row === 0 || row === 10) || (col === 0 || col === 10)) {
+                        // Border cells without properties
+                        cell.className = 'property';
+                        cell.style.background = '#f0f8f0';
+                    } else {
+                        // Center area
+                        cell.style.background = '#f0f8f0';
+                        if (row === 5 && col === 5) {
+                            cell.innerHTML = '<div style="font-size: 20px; font-weight: bold; color: #333;">MONOPOLY</div>';
+                            cell.style.display = 'flex';
+                            cell.style.justifyContent = 'center';
+                            cell.style.alignItems = 'center';
+                        }
+                    }
+                    
+                    board.appendChild(cell);
+                }
+            }
         }
-
-        function showError(message) {
-            document.getElementById('error').textContent = message;
-            document.getElementById('error').style.display = 'block';
-            document.getElementById('results').style.display = 'none';
+        
+        function openPropertyModal(property) {
+            if (property.type === 'corner' || property.type === 'chance' || property.type === 'chest' || property.type === 'tax') {
+                return; // These can't be owned
+            }
+            
+            const modal = document.getElementById('propertyModal');
+            const title = document.getElementById('modalTitle');
+            const content = document.getElementById('modalContent');
+            
+            title.textContent = property.name;
+            
+            const owner = players.find(p => p.properties.some(prop => prop.name === property.name));
+            
+            let modalHTML = `<p><strong>Price:</strong> $${property.price}</p>`;
+            
+            if (owner) {
+                modalHTML += `<p><strong>Owner:</strong> ${owner.name}</p>`;
+                
+                if (property.type === 'property') {
+                    const houses = owner.houses[property.name] || 0;
+                    modalHTML += `<p><strong>Houses:</strong> ${houses}</p>`;
+                    
+                    modalHTML += `
+                        <div style="margin: 10px 0;">
+                            <button class="btn" onclick="addHouse('${property.name}', ${owner.id})">Add House ($50)</button>
+                            <button class="btn btn-danger" onclick="removeHouse('${property.name}', ${owner.id})">Remove House</button>
+                        </div>
+                    `;
+                }
+                
+                modalHTML += `<button class="btn btn-danger" onclick="sellProperty('${property.name}', ${owner.id})">Sell Property</button>`;
+            } else {
+                modalHTML += `<p><strong>Status:</strong> Available</p>`;
+                modalHTML += `<div style="margin: 10px 0;">`;
+                players.forEach(player => {
+                    modalHTML += `<button class="btn" onclick="buyProperty('${property.name}', ${player.id})" style="margin: 2px; padding: 5px; font-size: 12px;">${player.name} Buy</button>`;
+                });
+                modalHTML += `</div>`;
+            }
+            
+            content.innerHTML = modalHTML;
+            modal.style.display = 'flex';
         }
-
-        function hideError() {
-            document.getElementById('error').style.display = 'none';
+        
+        function buyProperty(propertyName, playerId) {
+            const property = PROPERTIES.find(p => p.name === propertyName);
+            const player = players[playerId];
+            
+            if (player.money < property.price) {
+                alert('Insufficient funds!');
+                return;
+            }
+            
+            player.money -= property.price;
+            player.properties.push(property);
+            
+            updatePropertyDisplay(property, player);
+            updatePlayersDisplay();
+            closeModal();
         }
-
-        // Enter key support
-        document.addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                calculateCharges();
+        
+        function sellProperty(propertyName, playerId) {
+            const property = PROPERTIES.find(p => p.name === propertyName);
+            const player = players[playerId];
+            
+            // Remove houses first
+            if (player.houses[propertyName]) {
+                player.money += (player.houses[propertyName] * 25); // Half price for houses
+                delete player.houses[propertyName];
+            }
+            
+            player.money += Math.floor(property.price * 0.5); // Half price for property
+            player.properties = player.properties.filter(p => p.name !== propertyName);
+            
+            const propertyElement = document.getElementById(`property-${PROPERTIES.indexOf(property)}`);
+            propertyElement.classList.remove('owned');
+            
+            // Remove owner indicator and houses
+            const ownerIndicator = propertyElement.querySelector('.owner-indicator');
+            const housesIndicator = propertyElement.querySelector('.houses');
+            if (ownerIndicator) ownerIndicator.remove();
+            if (housesIndicator) housesIndicator.remove();
+            
+            updatePlayersDisplay();
+            closeModal();
+        }
+        
+        function addHouse(propertyName, playerId) {
+            const player = players[playerId];
+            
+            if (player.money < 50) {
+                alert('Insufficient funds for house!');
+                return;
+            }
+            
+            const currentHouses = player.houses[propertyName] || 0;
+            if (currentHouses >= 5) {
+                alert('Maximum houses/hotels reached!');
+                return;
+            }
+            
+            player.money -= 50;
+            player.houses[propertyName] = currentHouses + 1;
+            
+            const property = PROPERTIES.find(p => p.name === propertyName);
+            updatePropertyDisplay(property, player);
+            updatePlayersDisplay();
+            closeModal();
+        }
+        
+        function removeHouse(propertyName, playerId) {
+            const player = players[playerId];
+            
+            if (!player.houses[propertyName] || player.houses[propertyName] === 0) {
+                alert('No houses to remove!');
+                return;
+            }
+            
+            player.money += 25; // Half price back
+            player.houses[propertyName]--;
+            
+            if (player.houses[propertyName] === 0) {
+                delete player.houses[propertyName];
+            }
+            
+            const property = PROPERTIES.find(p => p.name === propertyName);
+            updatePropertyDisplay(property, player);
+            updatePlayersDisplay();
+            closeModal();
+        }
+        
+        function updatePropertyDisplay(property, owner) {
+            const propertyElement = document.getElementById(`property-${PROPERTIES.indexOf(property)}`);
+            propertyElement.classList.add('owned');
+            
+            // Remove existing indicators
+            const existingOwner = propertyElement.querySelector('.owner-indicator');
+            const existingHouses = propertyElement.querySelector('.houses');
+            if (existingOwner) existingOwner.remove();
+            if (existingHouses) existingHouses.remove();
+            
+            // Add owner indicator
+            const ownerIndicator = document.createElement('div');
+            ownerIndicator.className = 'owner-indicator';
+            ownerIndicator.style.backgroundColor = owner.color;
+            propertyElement.appendChild(ownerIndicator);
+            
+            // Add houses indicator
+            if (property.type === 'property' && owner.houses[property.name] > 0) {
+                const housesIndicator = document.createElement('div');
+                housesIndicator.className = `houses ${owner.houses[property.name] === 5 ? 'hotel' : ''}`;
+                housesIndicator.textContent = owner.houses[property.name] === 5 ? 'H' : owner.houses[property.name];
+                propertyElement.appendChild(housesIndicator);
+            }
+        }
+        
+        function closeModal() {
+            document.getElementById('propertyModal').style.display = 'none';
+        }
+        
+        // Close modal when clicking outside
+        document.getElementById('propertyModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
             }
         });
+        
+        // Init<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monopoly Game Counter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            height: calc(100vh - 40px);
+        }
+        
+        .sidebar {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .board-container {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 600px;
+        }
+        
+        .board {
+            width: 600px;
+            height: 600px;
+            background: #f0f8f0;
+            border: 3px solid #000;
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(11, 1fr);
+            grid-template-rows: repeat(11, 1fr);
+        }
+        
+        .property {
+            border: 1px solid #000;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            position: relative;
+            color: black;
+            text-align: center;
+            padding: 2px;
+        }
+        
+        .property:hover {
+            background: #f0f0f0;
+        }
+        
+        .property.owned {
+            background: #ffeb3b;
+        }
+        
+        .corner {
+            font-size: 10px;
+        }
+        
+        .color-strip {
+            width: 100%;
+            height: 8px;
+            margin-bottom: 2px;
+        }
+        
+        .brown { background: #8B4513; }
+        .light-blue { background: #87CEEB; }
+        .pink { background: #FF69B4; }
+        .orange { background: #FFA500; }
+        .red { background: #FF0000; }
+        .yellow { background: #FFFF00; }
+        .green { background: #008000; }
+        .dark-blue { background: #00008B; }
+        .railroad { background: #000; }
+        .utility { background: #FFF; border: 2px solid #000; }
+        
+        .houses {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: green;
+            color: white;
+            border-radius: 50%;
+            width: 12px;
+            height: 12px;
+            font-size: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .hotel {
+            background: red;
+        }
+        
+        .owner-indicator {
+            position: absolute;
+            bottom: 2px;
+            left: 2px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            border: 1px solid #000;
+        }
+        
+        .setup-section, .players-section, .transfer-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #3498db;
+        }
+        
+        .input-group {
+            margin-bottom: 10px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.9);
+            color: black;
+        }
+        
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            width: 100%;
+            margin-top: 5px;
+        }
+        
+        .btn:hover {
+            background: #2980b9;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        .player-card {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .player-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .player-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        
+        .player-money {
+            font-size: 16px;
+            color: #2ecc71;
+            margin-bottom: 5px;
+        }
+        
+        .player-properties {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .transfer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .property-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            color: black;
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+            max-width: 90%;
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+            }
+            
+            .sidebar {
+                height: auto;
+                max-height: 400px;
+            }
+            
+            .board {
+                width: 500px;
+                height: 500px;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .board {
+                width: 350px;
+                height: 350px;
+            }
+            
+            .property {
+                font-size: 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="setup-section">
+                <div class="section-title">Game Setup</div>
+                <div class="input-group">
+                    <label>Number of Players:</label>
+                    <input type="number" id="numPlayers" min="2" max="8" value="4">
+                </div>
+                <button class="btn" onclick="setupGame()">Start New Game</button>
+            </div>
+            
+            <div class="players-section" id="playersSection" style="display: none;">
+                <div class="section-title">Players</div>
+                <div id="playersList"></div>
+            </div>
+            
+            <div class="transfer-section" id="transferSection" style="display: none;">
+                <div class="section-title">Transfer Money</div>
+                <div class="transfer-grid">
+                    <div class="input-group">
+                        <label>From:</label>
+                        <select id="fromPlayer"></select>
+                    </div>
+                    <div class="input-group">
+                        <label>To:</label>
+                        <select id="toPlayer"></select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Amount:</label>
+                    <input type="number" id="transferAmount" min="1">
+                </div>
+                <button class="btn" onclick="transferMoney()">Transfer</button>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="board-container">
+                <div class="board" id="gameBoard"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="property-modal" id="propertyModal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+            <div class="modal-title" id="modalTitle"></div>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const PLAYER_COLORS = ['#FF0000', '#0000FF', '#00FF00', '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500', '#800080'];
+        
+        const PROPERTIES = [
+            // Bottom row (left to right)
+            {name: 'GO', type: 'corner', position: [10, 10]},
+            {name: 'Mediterranean Ave', type: 'property', color: 'brown', price: 60, position: [10, 9]},
+            {name: 'Community Chest', type: 'chest', position: [10, 8]},
+            {name: 'Baltic Ave', type: 'property', color: 'brown', price: 60, position: [10, 7]},
+            {name: 'Income Tax', type: 'tax', position: [10, 6]},
+            {name: 'Reading Railroad', type: 'railroad', price: 200, position: [10, 5]},
+            {name: 'Oriental Ave', type: 'property', color: 'light-blue', price: 100, position: [10, 4]},
+            {name: 'Chance', type: 'chance', position: [10, 3]},
+            {name: 'Vermont Ave', type: 'property', color: 'light-blue', price: 100, position: [10, 2]},
+            {name: 'Connecticut Ave', type: 'property', color: 'light-blue', price: 120, position: [10, 1]},
+            {name: 'JAIL', type: 'corner', position: [10, 0]},
+            
+            // Left side (bottom to top)
+            {name: 'St. Charles Place', type: 'property', color: 'pink', price: 140, position: [9, 0]},
+            {name: 'Electric Company', type: 'utility', price: 150, position: [8, 0]},
+            {name: 'States Ave', type: 'property', color: 'pink', price: 140, position: [7, 0]},
+            {name: 'Virginia Ave', type: 'property', color: 'pink', price: 160, position: [6, 0]},
+            {name: 'Pennsylvania Railroad', type: 'railroad', price: 200, position: [5, 0]},
+            {name: 'St. James Place', type: 'property', color: 'orange', price: 180, position: [4, 0]},
+            {name: 'Community Chest', type: 'chest', position: [3, 0]},
+            {name: 'Tennessee Ave', type: 'property', color: 'orange', price: 180, position: [2, 0]},
+            {name: 'New York Ave', type: 'property', color: 'orange', price: 200, position: [1, 0]},
+            {name: 'FREE PARKING', type: 'corner', position: [0, 0]},
+            
+            // Top side (left to right)
+            {name: 'Kentucky Ave', type: 'property', color: 'red', price: 220, position: [0, 1]},
+            {name: 'Chance', type: 'chance', position: [0, 2]},
+            {name: 'Indiana Ave', type: 'property', color: 'red', price: 220, position: [0, 3]},
+            {name: 'Illinois Ave', type: 'property', color: 'red', price: 240, position: [0, 4]},
+            {name: 'B&O Railroad', type: 'railroad', price: 200, position: [0, 5]},
+            {name: 'Atlantic Ave', type: 'property', color: 'yellow', price: 260, position: [0, 6]},
+            {name: 'Ventnor Ave', type: 'property', color: 'yellow', price: 260, position: [0, 7]},
+            {name: 'Water Works', type: 'utility', price: 150, position: [0, 8]},
+            {name: 'Marvin Gardens', type: 'property', color: 'yellow', price: 280, position: [0, 9]},
+            {name: 'GO TO JAIL', type: 'corner', position: [0, 10]},
+            
+            // Right side (top to bottom)
+            {name: 'Pacific Ave', type: 'property', color: 'green', price: 300, position: [1, 10]},
+            {name: 'North Carolina Ave', type: 'property', color: 'green', price: 300, position: [2, 10]},
+            {name: 'Community Chest', type: 'chest', position: [3, 10]},
+            {name: 'Pennsylvania Ave', type: 'property', color: 'green', price: 320, position: [4, 10]},
+            {name: 'Short Line Railroad', type: 'railroad', price: 200, position: [5, 10]},
+            {name: 'Chance', type: 'chance', position: [6, 10]},
+            {name: 'Park Place', type: 'property', color: 'dark-blue', price: 350, position: [7, 10]},
+            {name: 'Luxury Tax', type: 'tax', position: [8, 10]},
+            {name: 'Boardwalk', type: 'property', color: 'dark-blue', price: 400, position: [9, 10]}
+        ];
+        
+        let players = [];
+        let gameStarted = false;
+        
+        function setupGame() {
+            const numPlayers = parseInt(document.getElementById('numPlayers').value);
+            players = [];
+            
+            for (let i = 0; i < numPlayers; i++) {
+                players.push({
+                    id: i,
+                    name: `Player ${i + 1}`,
+                    money: 1500,
+                    color: PLAYER_COLORS[i],
+                    properties: [],
+                    houses: {}
+                });
+            }
+            
+            gameStarted = true;
+            updatePlayersDisplay();
+            updateTransferSelects();
+            createBoard();
+            
+            document.getElementById('playersSection').style.display = 'block';
+            document.getElementById('transferSection').style.display = 'block';
+        }
+        
+        function updatePlayersDisplay() {
+            const playersList = document.getElementById('playersList');
+            playersList.innerHTML = '';
+            
+            players.forEach(player => {
+                const playerCard = document.createElement('div');
+                playerCard.className = 'player-card';
+                
+                const ownedProperties = player.properties.map(prop => prop.name).join(', ') || 'None';
+                
+                playerCard.innerHTML = `
+                    <div class="player-name">
+                        <div class="player-color" style="background-color: ${player.color}"></div>
+                        <input type="text" value="${player.name}" onchange="updatePlayerName(${player.id}, this.value)" style="background: transparent; border: none; color: white; font-weight: bold;">
+                    </div>
+                    <div class="player-money">$${player.money}</div>
+                    <div class="player-properties">Properties: ${ownedProperties}</div>
+                    <div style="display: flex; gap: 5px; margin-top: 5px;">
+                        <button class="btn" style="padding: 5px; font-size: 12px;" onclick="adjustMoney(${player.id}, 50)">+$50</button>
+                        <button class="btn" style="padding: 5px; font-size: 12px;" onclick="adjustMoney(${player.id}, 200)">+$200</button>
+                        <button class="btn btn-danger" style="padding: 5px; font-size: 12px;" onclick="adjustMoney(${player.id}, -50)">-$50</button>
+                    </div>
+                `;
+                
+                playersList.appendChild(playerCard);
+            });
+        }
+        
+        function updatePlayerName(playerId, newName) {
+            players[playerId].name = newName;
+            updateTransferSelects();
+        }
+        
+        function adjustMoney(playerId, amount) {
+            players[playerId].money += amount;
+            if (players[playerId].money < 0) players[playerId].money = 0;
+            updatePlayersDisplay();
+        }
+        
+        function updateTransferSelects() {
+            const fromSelect = document.getElementById('fromPlayer');
+            const toSelect = document.getElementById('toPlayer');
+            
+            fromSelect.innerHTML = '';
+            toSelect.innerHTML = '';
+            
+            players.forEach(player => {
+                const option1 = document.createElement('option');
+                option1.value = player.id;
+                option1.textContent = player.name;
+                fromSelect.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = player.id;
+                option2.textContent = player.name;
+                toSelect.appendChild(option2);
+            });
+        }
+        
+        function transferMoney() {
+            const fromId = parseInt(document.getElementById('fromPlayer').value);
+            const toId = parseInt(document.getElementById('toPlayer').value);
+            const amount = parseInt(document.getElementById('transferAmount').value);
+            
+            if (fromId === toId) {
+                alert('Cannot transfer to the same player!');
+                return;
+            }
+            
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid amount!');
+                return;
+            }
+            
+            if (players[fromId].money < amount) {
+                alert('Insufficient funds!');
+                return;
+            }
+            
+            players[fromId].money -= amount;
+            players[toId].money += amount;
+            
+            document.getElementById('transferAmount').value = '';
+            updatePlayersDisplay();
+        }
+        
+        function createBoard() {
+            const board = document.getElementById('gameBoard');
+            board.innerHTML = '';
+            
+            // Create 11x11 grid
+            for (let row = 0; row < 11; row++) {
+                for (let col = 0; col < 11; col++) {
+                    const cell = document.createElement('div');
+                    
+                    // Find property at this position
+                    const property = PROPERTIES.find(p => p.position[0] === row && p.position[1] === col);
+                    
+                    if (property) {
+                        cell.className = `property ${property.type === 'corner' ? 'corner' : ''}`;
+                        cell.onclick = () => openPropertyModal(property);
+                        
+                        if (property.color) {
+                            const colorStrip = document.createElement('div');
+                            colorStrip.className = `color-strip ${property.color}`;
+                            cell.appendChild(colorStrip);
+                        }
+                        
+                        const nameDiv = document.createElement('div');
+                        nameDiv.textContent = property.name;
+                        cell.appendChild(nameDiv);
+                        
+                        if (property.price) {
+                            const priceDiv = document.createElement('div');
+                            priceDiv.textContent = `$${property.price}`;
+                            priceDiv.style.fontSize = '7px';
+                            cell.appendChild(priceDiv);
+                        }
+                        
+                        cell.id = `property-${PROPERTIES.indexOf(property)}`;
+                    } else if ((row === 0 || row === 10) || (col === 0 || col === 10)) {
+                        // Border cells without properties
+                        cell.className = 'property';
+                        cell.style.background = '#f0f8f0';
+                    } else {
+                        // Center area
+                        cell.style.background = '#f0f8f0';
+                        if (row === 5 && col === 5) {
+                            cell.innerHTML = '<div style="font-size: 20px; font-weight: bold; color: #333;">MONOPOLY</div>';
+                            cell.style.display = 'flex';
+                            cell.style.justifyContent = 'center';
+                            cell.style.alignItems = 'center';
+                        }
+                    }
+                    
+                    board.appendChild(cell);
+                }
+            }
+        }
+        
+        function openPropertyModal(property) {
+            if (property.type === 'corner' || property.type === 'chance' || property.type === 'chest' || property.type === 'tax') {
+                return; // These can't be owned
+            }
+            
+            const modal = document.getElementById('propertyModal');
+            const title = document.getElementById('modalTitle');
+            const content = document.getElementById('modalContent');
+            
+            title.textContent = property.name;
+            
+            const owner = players.find(p => p.properties.some(prop => prop.name === property.name));
+            
+            let modalHTML = `<p><strong>Price:</strong> $${property.price}</p>`;
+            
+            if (owner) {
+                modalHTML += `<p><strong>Owner:</strong> ${owner.name}</p>`;
+                
+                if (property.type === 'property') {
+                    const houses = owner.houses[property.name] || 0;
+                    modalHTML += `<p><strong>Houses:</strong> ${houses}</p>`;
+                    
+                    modalHTML += `
+                        <div style="margin: 10px 0;">
+                            <button class="btn" onclick="addHouse('${property.name}', ${owner.id})">Add House ($50)</button>
+                            <button class="btn btn-danger" onclick="removeHouse('${property.name}', ${owner.id})">Remove House</button>
+                        </div>
+                    `;
+                }
+                
+                modalHTML += `<button class="btn btn-danger" onclick="sellProperty('${property.name}', ${owner.id})">Sell Property</button>`;
+            } else {
+                modalHTML += `<p><strong>Status:</strong> Available</p>`;
+                modalHTML += `<div style="margin: 10px 0;">`;
+                players.forEach(player => {
+                    modalHTML += `<button class="btn" onclick="buyProperty('${property.name}', ${player.id})" style="margin: 2px; padding: 5px; font-size: 12px;">${player.name} Buy</button>`;
+                });
+                modalHTML += `</div>`;
+            }
+            
+            content.innerHTML = modalHTML;
+            modal.style.display = 'flex';
+        }
+        
+        function buyProperty(propertyName, playerId) {
+            const property = PROPERTIES.find(p => p.name === propertyName);
+            const player = players[playerId];
+            
+            if (player.money < property.price) {
+                alert('Insufficient funds!');
+                return;
+            }
+            
+            player.money -= property.price;
+            player.properties.push(property);
+            
+            updatePropertyDisplay(property, player);
+            updatePlayersDisplay();
+            closeModal();
+        }
+        
+        function sellProperty(propertyName, playerId) {
+            const property = PROPERTIES.find(p => p.name === propertyName);
+            const player = players[playerId];
+            
+            // Remove houses first
+            if (player.houses[propertyName]) {
+                player.money += (player.houses[propertyName] * 25); // Half price for houses
+                delete player.houses[propertyName];
+            }
+            
+            player.money += Math.floor(property.price * 0.5); // Half price for property
+            player.properties = player.properties.filter(p => p.name !== propertyName);
+            
+            const propertyElement = document.getElementById(`property-${PROPERTIES.indexOf(property)}`);
+            propertyElement.classList.remove('owned');
+            
+            // Remove owner indicator and houses
+            const ownerIndicator = propertyElement.querySelector('.owner-indicator');
+            const housesIndicator = propertyElement.querySelector('.houses');
+            if (ownerIndicator) ownerIndicator.remove();
+            if (housesIndicator) housesIndicator.remove();
+            
+            updatePlayersDisplay();
+            closeModal();
+        }
+        
+        function addHouse(propertyName, playerId) {
+            const player = players[playerId];
+            
+            if (player.money < 50) {
+                alert('Insufficient funds for house!');
+                return;
+            }
+            
+            const currentHouses = player.houses[propertyName] || 0;
+            if (currentHouses >= 5) {
+                alert('Maximum houses/hotels reached!');
+                return;
+            }
+            
+            player.money -= 50;
+            player.houses[propertyName] = currentHouses + 1;
+            
+            const property = PROPERTIES.find(p => p.name === propertyName);
+            updatePropertyDisplay(property, player);
+            updatePlayersDisplay();
+            closeModal();
+        }
+        
+        function removeHouse(propertyName, playerId) {
+            const player = players[playerId];
+            
+            if (!player.houses[propertyName] || player.houses[propertyName] === 0) {
+                alert('No houses to remove!');
+                return;
+            }
+            
+            player.money += 25; // Half price back
+            player.houses[propertyName]--;
+            
+            if (player.houses[propertyName] === 0) {
+                delete player.houses[propertyName];
+            }
+            
+            const property = PROPERTIES.find(p => p.name === propertyName);
+            updatePropertyDisplay(property, player);
+            updatePlayersDisplay();
+            closeModal();
+        }
+        
+        function updatePropertyDisplay(property, owner) {
+            const propertyElement = document.getElementById(`property-${PROPERTIES.indexOf(property)}`);
+            propertyElement.classList.add('owned');
+            
+            // Remove existing indicators
+            const existingOwner = propertyElement.querySelector('.owner-indicator');
+            const existingHouses = propertyElement.querySelector('.houses');
+            if (existingOwner) existingOwner.remove();
+            if (existingHouses) existingHouses.remove();
+            
+            // Add owner indicator
+            const ownerIndicator = document.createElement('div');
+            ownerIndicator.className = 'owner-indicator';
+            ownerIndicator.style.backgroundColor = owner.color;
+            propertyElement.appendChild(ownerIndicator);
+            
+            // Add houses indicator
+            if (property.type === 'property' && owner.houses[property.name] > 0) {
+                const housesIndicator = document.createElement('div');
+                housesIndicator.className = `houses ${owner.houses[property.name] === 5 ? 'hotel' : ''}`;
+                housesIndicator.textContent = owner.houses[property.name] === 5 ? 'H' : owner.houses[property.name];
+                propertyElement.appendChild(housesIndicator);
+            }
+        }
+        
+        function closeModal() {
+            document.getElementById('propertyModal').style.display = 'none';
+        }
+        
+        // Close modal when clicking outside
+        document.getElementById('propertyModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+        
+        // Initialize board on load
+        createBoard();
+    </script>
+</body>
+</html>ialize board on load
+        createBoard();
     </script>
 </body>
 </html>
+
+#coding
