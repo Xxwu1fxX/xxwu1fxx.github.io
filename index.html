@@ -1,1495 +1,833 @@
-# <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monopoly Game Counter</title>
+    <title>HoloBlueprint - Minecraft Structure Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #2c3e50, #34495e);
-            color: white;
-            min-height: 100vh;
-            padding: 20px;
+            font-family: 'Orbitron', monospace;
+            background: #0a0a0a;
+            color: #00ffff;
+            overflow: hidden;
+            height: 100vh;
         }
-        
+
         .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 20px;
-            height: calc(100vh - 40px);
+            display: flex;
+            height: 100vh;
+            position: relative;
         }
-        
+
         .sidebar {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
+            width: 300px;
+            background: rgba(0, 20, 40, 0.95);
+            backdrop-filter: blur(10px);
+            border-right: 2px solid #00ffff;
             padding: 20px;
             overflow-y: auto;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
         }
-        
-        .main-content {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        
-        .board-container {
+
+        .main-view {
             flex: 1;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 600px;
-        }
-        
-        .board {
-            width: 600px;
-            height: 600px;
-            background: #f0f8f0;
-            border: 3px solid #000;
             position: relative;
-            display: grid;
-            grid-template-columns: repeat(11, 1fr);
-            grid-template-rows: repeat(11, 1fr);
+            background: #0a0a0a;
+            overflow: hidden;
         }
-        
-        .property {
-            border: 1px solid #000;
-            background: white;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            font-size: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            position: relative;
-            color: black;
+
+        .logo {
             text-align: center;
-            padding: 2px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
         }
-        
-        .property:hover {
-            background: #f0f0f0;
+
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            background: linear-gradient(45deg, #00ffff, #0080ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 5px;
         }
-        
-        .property.owned {
-            background: #ffeb3b;
-        }
-        
-        .corner {
+
+        .logo p {
             font-size: 10px;
+            color: #00aaff;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
-        
-        .color-strip {
-            width: 100%;
-            height: 8px;
-            margin-bottom: 2px;
-        }
-        
-        .brown { background: #8B4513; }
-        .light-blue { background: #87CEEB; }
-        .pink { background: #FF69B4; }
-        .orange { background: #FFA500; }
-        .red { background: #FF0000; }
-        .yellow { background: #FFFF00; }
-        .green { background: #008000; }
-        .dark-blue { background: #00008B; }
-        .railroad { background: #000; }
-        .utility { background: #FFF; border: 2px solid #000; }
-        
-        .houses {
-            position: absolute;
-            top: 2px;
-            right: 2px;
-            background: green;
-            color: white;
-            border-radius: 50%;
-            width: 12px;
-            height: 12px;
-            font-size: 8px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .hotel {
-            background: red;
-        }
-        
-        .owner-indicator {
-            position: absolute;
-            bottom: 2px;
-            left: 2px;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            border: 1px solid #000;
-        }
-        
-        .setup-section, .players-section, .transfer-section {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
+
+        .section {
+            margin-bottom: 25px;
             padding: 15px;
+            background: rgba(0, 40, 80, 0.3);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
+        }
+
+        .section h3 {
+            font-size: 14px;
+            margin-bottom: 15px;
+            color: #00ffff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+            padding-bottom: 5px;
+        }
+
+        .file-upload {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-upload input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-upload-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, #00ffff, #0080ff);
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .file-upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 25px rgba(0, 255, 255, 0.5);
+        }
+
+        .control-group {
             margin-bottom: 15px;
         }
-        
-        .section-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #3498db;
-        }
-        
-        .input-group {
-            margin-bottom: 10px;
-        }
-        
-        .input-group label {
+
+        .control-group label {
             display: block;
-            margin-bottom: 5px;
-            font-size: 14px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: #00aaff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        
-        .input-group input, .input-group select {
+
+        .control-btn {
             width: 100%;
-            padding: 8px;
-            border: none;
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.9);
-            color: black;
-        }
-        
-        .btn {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 15px;
+            padding: 10px;
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid #00ffff;
+            color: #00ffff;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
-            width: 100%;
-            margin-top: 5px;
+            font-family: 'Orbitron', monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            margin-bottom: 8px;
         }
-        
-        .btn:hover {
-            background: #2980b9;
+
+        .control-btn:hover, .control-btn.active {
+            background: rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
         }
-        
-        .btn-danger {
-            background: #e74c3c;
+
+        .view-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 15px;
         }
-        
-        .btn-danger:hover {
-            background: #c0392b;
-        }
-        
-        .player-card {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 6px;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-        
-        .player-name {
-            font-weight: bold;
-            margin-bottom: 5px;
+
+        .layer-controls {
             display: flex;
             align-items: center;
             gap: 10px;
+            margin-bottom: 15px;
         }
-        
-        .player-color {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            border: 2px solid white;
+
+        .layer-btn {
+            padding: 8px 12px;
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid #00ffff;
+            color: #00ffff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Orbitron', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
         }
-        
-        .player-money {
-            font-size: 16px;
-            color: #2ecc71;
-            margin-bottom: 5px;
+
+        .layer-btn:hover {
+            background: rgba(0, 255, 255, 0.2);
         }
-        
-        .player-properties {
+
+        .layer-display {
+            color: #00aaff;
             font-size: 12px;
-            opacity: 0.8;
+            text-align: center;
+            flex: 1;
         }
-        
-        .transfer-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 10px;
+
+        .slider {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(0, 255, 255, 0.2);
+            outline: none;
+            margin: 10px 0;
         }
-        
-        .property-modal {
-            position: fixed;
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #00ffff;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .info-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 20, 40, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            font-size: 11px;
+            color: #00aaff;
+            max-width: 250px;
+            z-index: 100;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #00ffff;
+            z-index: 200;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(0, 255, 255, 0.3);
+            border-top: 3px solid #00ffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            color: #ff4444;
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid #ff4444;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 11px;
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background: #0a0a0a;
+        }
+
+        .blueprint-grid {
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
+            pointer-events: none;
+            z-index: 1;
         }
-        
-        .modal-content {
-            background: white;
-            color: black;
-            padding: 20px;
-            border-radius: 10px;
-            width: 300px;
-            max-width: 90%;
-        }
-        
-        .modal-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
-        
-        .close-btn {
+
+        .view-label {
             position: absolute;
-            top: 10px;
-            right: 15px;
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 20, 40, 0.9);
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            font-size: 14px;
+            font-weight: 700;
+            color: #00ffff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            z-index: 100;
         }
-        
-        @media (max-width: 1200px) {
-            .container {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto 1fr;
-            }
-            
-            .sidebar {
-                height: auto;
-                max-height: 400px;
-            }
-            
-            .board {
-                width: 500px;
-                height: 500px;
-            }
-        }
-        
-        @media (max-width: 600px) {
-            .board {
-                width: 350px;
-                height: 350px;
-            }
-            
-            .property {
-                font-size: 6px;
-            }
+
+        .coordinates {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 20, 40, 0.9);
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            font-size: 11px;
+            color: #00aaff;
+            z-index: 100;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="sidebar">
-            <div class="setup-section">
-                <div class="section-title">Game Setup</div>
-                <div class="input-group">
-                    <label>Number of Players:</label>
-                    <input type="number" id="numPlayers" min="2" max="8" value="4">
-                </div>
-                <button class="btn" onclick="setupGame()">Start New Game</button>
+            <div class="logo">
+                <h1>HoloBlueprint</h1>
+                <p>Structure Analyzer v3.0</p>
             </div>
-            
-            <div class="players-section" id="playersSection" style="display: none;">
-                <div class="section-title">Players</div>
-                <div id="playersList"></div>
+
+            <div class="section">
+                <h3>File Import</h3>
+                <div class="file-upload">
+                    <input type="file" id="fileInput" accept=".mcstructure" />
+                    <button class="file-upload-btn" onclick="document.getElementById('fileInput').click()">
+                        Upload .mcstructure
+                    </button>
+                </div>
+                <div id="fileInfo" style="margin-top: 10px; font-size: 10px; color: #00aaff;"></div>
             </div>
-            
-            <div class="transfer-section" id="transferSection" style="display: none;">
-                <div class="section-title">Transfer Money</div>
-                <div class="transfer-grid">
-                    <div class="input-group">
-                        <label>From:</label>
-                        <select id="fromPlayer"></select>
-                    </div>
-                    <div class="input-group">
-                        <label>To:</label>
-                        <select id="toPlayer"></select>
-                    </div>
+
+            <div class="section">
+                <h3>Blueprint Views</h3>
+                <div class="view-controls">
+                    <button class="control-btn" onclick="setView('top')">Top View</button>
+                    <button class="control-btn" onclick="setView('front')">Front View</button>
+                    <button class="control-btn" onclick="setView('side')">Side View</button>
+                    <button class="control-btn active" onclick="setView('iso')">Isometric</button>
                 </div>
-                <div class="input-group">
-                    <label>Amount:</label>
-                    <input type="number" id="transferAmount" min="1">
+            </div>
+
+            <div class="section">
+                <h3>Layer Control</h3>
+                <div class="layer-controls">
+                    <button class="layer-btn" onclick="changeLayer(-1)">◀</button>
+                    <div class="layer-display" id="layerDisplay">Layer: 1 / 1</div>
+                    <button class="layer-btn" onclick="changeLayer(1)">▶</button>
                 </div>
-                <button class="btn" onclick="transferMoney()">Transfer</button>
+                <div class="control-group">
+                    <button class="control-btn" onclick="toggleLayerMode()">Show All Layers</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Display Options</h3>
+                <div class="control-group">
+                    <button class="control-btn active" id="solidBtn" onclick="setRenderMode('solid')">Solid Blocks</button>
+                    <button class="control-btn" id="wireframeBtn" onclick="setRenderMode('wireframe')">Wireframe</button>
+                    <button class="control-btn" id="outlineBtn" onclick="setRenderMode('outline')">Blueprint Lines</button>
+                </div>
+                <div class="control-group">
+                    <label>Grid Opacity</label>
+                    <input type="range" class="slider" id="gridSlider" min="0" max="1" step="0.1" value="0.5" onchange="updateGridOpacity(this.value)">
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Navigation</h3>
+                <div class="control-group">
+                    <button class="control-btn" onclick="resetView()">Reset View</button>
+                    <button class="control-btn" onclick="fitToScreen()">Fit to Screen</button>
+                </div>
             </div>
         </div>
-        
-        <div class="main-content">
-            <div class="board-container">
-                <div class="board" id="gameBoard"></div>
+
+        <div class="main-view">
+            <div id="canvas-container">
+                <svg class="blueprint-grid" id="blueprintGrid"></svg>
             </div>
-        </div>
-    </div>
-    
-    <div class="property-modal" id="propertyModal">
-        <div class="modal-content">
-            <button class="close-btn" onclick="closeModal()">&times;</button>
-            <div class="modal-title" id="modalTitle"></div>
-            <div id="modalContent"></div>
+            
+            <div class="view-label" id="viewLabel">ISOMETRIC VIEW</div>
+            <div class="coordinates" id="coordinates">X: 0, Y: 0, Z: 0</div>
+            
+            <div class="info-panel" id="infoPanel" style="display: none;">
+                <div><strong>Structure Info:</strong></div>
+                <div id="structureInfo">No structure loaded</div>
+                <br>
+                <div><strong>Current Layer:</strong></div>
+                <div id="layerInfo">All layers visible</div>
+                <br>
+                <div><strong>Controls:</strong></div>
+                <div>• Mouse: Pan/Rotate view</div>
+                <div>• Scroll: Zoom in/out</div>
+                <div>• Layer buttons: Navigate layers</div>
+            </div>
+
+            <div class="loading" id="loadingScreen" style="display: none;">
+                <div class="loading-spinner"></div>
+                <div>Processing NBT structure data...</div>
+            </div>
         </div>
     </div>
 
     <script>
-        const PLAYER_COLORS = ['#FF0000', '#0000FF', '#00FF00', '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500', '#800080'];
-        
-        const PROPERTIES = [
-            // Bottom row (left to right)
-            {name: 'GO', type: 'corner', position: [10, 10]},
-            {name: 'Mediterranean Ave', type: 'property', color: 'brown', price: 60, position: [10, 9]},
-            {name: 'Community Chest', type: 'chest', position: [10, 8]},
-            {name: 'Baltic Ave', type: 'property', color: 'brown', price: 60, position: [10, 7]},
-            {name: 'Income Tax', type: 'tax', position: [10, 6]},
-            {name: 'Reading Railroad', type: 'railroad', price: 200, position: [10, 5]},
-            {name: 'Oriental Ave', type: 'property', color: 'light-blue', price: 100, position: [10, 4]},
-            {name: 'Chance', type: 'chance', position: [10, 3]},
-            {name: 'Vermont Ave', type: 'property', color: 'light-blue', price: 100, position: [10, 2]},
-            {name: 'Connecticut Ave', type: 'property', color: 'light-blue', price: 120, position: [10, 1]},
-            {name: 'JAIL', type: 'corner', position: [10, 0]},
+        // Global variables
+        let scene, camera, renderer;
+        let structureGroup;
+        let currentView = 'iso';
+        let currentRenderMode = 'solid';
+        let structureData = null;
+        let currentLayer = 0;
+        let totalLayers = 1;
+        let showAllLayers = true;
+        let blocks = [];
+
+        // Camera positions for different views
+        const viewPositions = {
+            top: { pos: [0, 100, 0], target: [0, 0, 0], up: [0, 0, -1] },
+            front: { pos: [0, 0, 100], target: [0, 0, 0], up: [0, 1, 0] },
+            side: { pos: [100, 0, 0], target: [0, 0, 0], up: [0, 1, 0] },
+            iso: { pos: [50, 50, 50], target: [0, 0, 0], up: [0, 1, 0] }
+        };
+
+        // Initialize Three.js scene
+        function initThreeJS() {
+            const container = document.getElementById('canvas-container');
             
-            // Left side (bottom to top)
-            {name: 'St. Charles Place', type: 'property', color: 'pink', price: 140, position: [9, 0]},
-            {name: 'Electric Company', type: 'utility', price: 150, position: [8, 0]},
-            {name: 'States Ave', type: 'property', color: 'pink', price: 140, position: [7, 0]},
-            {name: 'Virginia Ave', type: 'property', color: 'pink', price: 160, position: [6, 0]},
-            {name: 'Pennsylvania Railroad', type: 'railroad', price: 200, position: [5, 0]},
-            {name: 'St. James Place', type: 'property', color: 'orange', price: 180, position: [4, 0]},
-            {name: 'Community Chest', type: 'chest', position: [3, 0]},
-            {name: 'Tennessee Ave', type: 'property', color: 'orange', price: 180, position: [2, 0]},
-            {name: 'New York Ave', type: 'property', color: 'orange', price: 200, position: [1, 0]},
-            {name: 'FREE PARKING', type: 'corner', position: [0, 0]},
+            // Create scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0a0a);
+
+            // Create orthographic camera for blueprint-style viewing
+            const aspect = container.clientWidth / container.clientHeight;
+            const frustumSize = 100;
+            camera = new THREE.OrthographicCamera(
+                -frustumSize * aspect / 2, frustumSize * aspect / 2,
+                frustumSize / 2, -frustumSize / 2,
+                0.1, 1000
+            );
+
+            // Create renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            // Add lights
+            const ambientLight = new THREE.AmbientLight(0x00ffff, 0.4);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0x00aaff, 0.8);
+            directionalLight.position.set(50, 50, 25);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+
+            // Initialize controls
+            initControls();
             
-            // Top side (left to right)
-            {name: 'Kentucky Ave', type: 'property', color: 'red', price: 220, position: [0, 1]},
-            {name: 'Chance', type: 'chance', position: [0, 2]},
-            {name: 'Indiana Ave', type: 'property', color: 'red', price: 220, position: [0, 3]},
-            {name: 'Illinois Ave', type: 'property', color: 'red', price: 240, position: [0, 4]},
-            {name: 'B&O Railroad', type: 'railroad', price: 200, position: [0, 5]},
-            {name: 'Atlantic Ave', type: 'property', color: 'yellow', price: 260, position: [0, 6]},
-            {name: 'Ventnor Ave', type: 'property', color: 'yellow', price: 260, position: [0, 7]},
-            {name: 'Water Works', type: 'utility', price: 150, position: [0, 8]},
-            {name: 'Marvin Gardens', type: 'property', color: 'yellow', price: 280, position: [0, 9]},
-            {name: 'GO TO JAIL', type: 'corner', position: [0, 10]},
-            
-            // Right side (top to bottom)
-            {name: 'Pacific Ave', type: 'property', color: 'green', price: 300, position: [1, 10]},
-            {name: 'North Carolina Ave', type: 'property', color: 'green', price: 300, position: [2, 10]},
-            {name: 'Community Chest', type: 'chest', position: [3, 10]},
-            {name: 'Pennsylvania Ave', type: 'property', color: 'green', price: 320, position: [4, 10]},
-            {name: 'Short Line Railroad', type: 'railroad', price: 200, position: [5, 10]},
-            {name: 'Chance', type: 'chance', position: [6, 10]},
-            {name: 'Park Place', type: 'property', color: 'dark-blue', price: 350, position: [7, 10]},
-            {name: 'Luxury Tax', type: 'tax', position: [8, 10]},
-            {name: 'Boardwalk', type: 'property', color: 'dark-blue', price: 400, position: [9, 10]}
-        ];
-        
-        let players = [];
-        let gameStarted = false;
-        
-        function setupGame() {
-            const numPlayers = parseInt(document.getElementById('numPlayers').value);
-            players = [];
-            
-            for (let i = 0; i < numPlayers; i++) {
-                players.push({
-                    id: i,
-                    name: `Player ${i + 1}`,
-                    money: 1500,
-                    color: PLAYER_COLORS[i],
-                    properties: [],
-                    houses: {}
-                });
-            }
-            
-            gameStarted = true;
-            updatePlayersDisplay();
-            updateTransferSelects();
-            createBoard();
-            
-            document.getElementById('playersSection').style.display = 'block';
-            document.getElementById('transferSection').style.display = 'block';
+            // Set initial view
+            setView('iso');
+
+            // Create blueprint grid
+            createBlueprintGrid();
+
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize);
+
+            // Start render loop
+            animate();
         }
-        
-        function updatePlayersDisplay() {
-            const playersList = document.getElementById('playersList');
-            playersList.innerHTML = '';
+
+        function createBlueprintGrid() {
+            const svg = document.getElementById('blueprintGrid');
+            const container = document.getElementById('canvas-container');
             
-            players.forEach(player => {
-                const playerCard = document.createElement('div');
-                playerCard.className = 'player-card';
-                
-                const ownedProperties = player.properties.map(prop => prop.name).join(', ') || 'None';
-                
-                playerCard.innerHTML = `
-                    <div class="player-name">
-                        <div class="player-color" style="background-color: ${player.color}"></div>
-                        <input type="text" value="${player.name}" onchange="updatePlayerName(${player.id}, this.value)" style="background: transparent; border: none; color: white; font-weight: bold;">
-                    </div>
-                    <div class="player-money">$${player.money}</div>
-                    <div class="player-properties">Properties: ${ownedProperties}</div>
-                    <div style="display: flex; gap: 5px; margin-top: 5px;">
-                        <button class="btn" style="padding: 5px; font-size: 12px;" onclick="adjustMoney(${player.id}, 50)">+$50</button>
-                        <button class="btn" style="padding: 5px; font-size: 12px;" onclick="adjustMoney(${player.id}, 200)">+$200</button>
-                        <button class="btn btn-danger" style="padding: 5px; font-size: 12px;" onclick="adjustMoney(${player.id}, -50)">-$50</button>
-                    </div>
-                `;
-                
-                playersList.appendChild(playerCard);
+            // Clear existing grid
+            svg.innerHTML = '';
+            
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            
+            svg.setAttribute('width', width);
+            svg.setAttribute('height', height);
+            
+            // Create grid pattern
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
+            pattern.setAttribute('id', 'grid');
+            pattern.setAttribute('width', '20');
+            pattern.setAttribute('height', '20');
+            pattern.setAttribute('patternUnits', 'userSpaceOnUse');
+            
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', 'M 20 0 L 0 0 0 20');
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke', '#00ffff');
+            path.setAttribute('stroke-width', '0.5');
+            path.setAttribute('opacity', '0.3');
+            
+            pattern.appendChild(path);
+            defs.appendChild(pattern);
+            svg.appendChild(defs);
+            
+            // Create grid rectangle
+            const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            rect.setAttribute('width', '100%');
+            rect.setAttribute('height', '100%');
+            rect.setAttribute('fill', 'url(#grid)');
+            svg.appendChild(rect);
+        }
+
+        function initControls() {
+            let isMouseDown = false;
+            let mouseX = 0, mouseY = 0;
+            let panX = 0, panY = 0;
+            let zoom = 1;
+
+            const canvas = renderer.domElement;
+
+            canvas.addEventListener('mousedown', (event) => {
+                isMouseDown = true;
+                mouseX = event.clientX;
+                mouseY = event.clientY;
             });
-        }
-        
-        function updatePlayerName(playerId, newName) {
-            players[playerId].name = newName;
-            updateTransferSelects();
-        }
-        
-        function adjustMoney(playerId, amount) {
-            players[playerId].money += amount;
-            if (players[playerId].money < 0) players[playerId].money = 0;
-            updatePlayersDisplay();
-        }
-        
-        function updateTransferSelects() {
-            const fromSelect = document.getElementById('fromPlayer');
-            const toSelect = document.getElementById('toPlayer');
-            
-            fromSelect.innerHTML = '';
-            toSelect.innerHTML = '';
-            
-            players.forEach(player => {
-                const option1 = document.createElement('option');
-                option1.value = player.id;
-                option1.textContent = player.name;
-                fromSelect.appendChild(option1);
-                
-                const option2 = document.createElement('option');
-                option2.value = player.id;
-                option2.textContent = player.name;
-                toSelect.appendChild(option2);
+
+            canvas.addEventListener('mousemove', (event) => {
+                if (!isMouseDown) return;
+
+                const deltaX = event.clientX - mouseX;
+                const deltaY = event.clientY - mouseY;
+
+                if (currentView === 'iso') {
+                    // Rotate for isometric view
+                    if (structureGroup) {
+                        structureGroup.rotation.y += deltaX * 0.01;
+                        structureGroup.rotation.x += deltaY * 0.01;
+                    }
+                } else {
+                    // Pan for orthographic views
+                    panX += deltaX * 0.1 / zoom;
+                    panY -= deltaY * 0.1 / zoom;
+                    updateCameraPosition();
+                }
+
+                mouseX = event.clientX;
+                mouseY = event.clientY;
             });
+
+            canvas.addEventListener('mouseup', () => {
+                isMouseDown = false;
+            });
+
+            canvas.addEventListener('wheel', (event) => {
+                zoom *= (event.deltaY > 0) ? 0.9 : 1.1;
+                zoom = Math.max(0.1, Math.min(10, zoom));
+                updateCameraPosition();
+                event.preventDefault();
+            });
+
+            function updateCameraPosition() {
+                const view = viewPositions[currentView];
+                camera.position.set(
+                    view.pos[0] + panX,
+                    view.pos[1] + panY,
+                    view.pos[2]
+                );
+                camera.lookAt(view.target[0], view.target[1], view.target[2]);
+                camera.zoom = zoom;
+                camera.updateProjectionMatrix();
+            }
         }
-        
-        function transferMoney() {
-            const fromId = parseInt(document.getElementById('fromPlayer').value);
-            const toId = parseInt(document.getElementById('toPlayer').value);
-            const amount = parseInt(document.getElementById('transferAmount').value);
-            
-            if (fromId === toId) {
-                alert('Cannot transfer to the same player!');
-                return;
-            }
-            
-            if (!amount || amount <= 0) {
-                alert('Please enter a valid amount!');
-                return;
-            }
-            
-            if (players[fromId].money < amount) {
-                alert('Insufficient funds!');
-                return;
-            }
-            
-            players[fromId].money -= amount;
-            players[toId].money += amount;
-            
-            document.getElementById('transferAmount').value = '';
-            updatePlayersDisplay();
-        }
-        
-        function createBoard() {
-            const board = document.getElementById('gameBoard');
-            board.innerHTML = '';
-            
-            // Create 11x11 grid
-            for (let row = 0; row < 11; row++) {
-                for (let col = 0; col < 11; col++) {
-                    const cell = document.createElement('div');
-                    
-                    // Find property at this position
-                    const property = PROPERTIES.find(p => p.position[0] === row && p.position[1] === col);
-                    
-                    if (property) {
-                        cell.className = `property ${property.type === 'corner' ? 'corner' : ''}`;
-                        cell.onclick = () => openPropertyModal(property);
-                        
-                        if (property.color) {
-                            const colorStrip = document.createElement('div');
-                            colorStrip.className = `color-strip ${property.color}`;
-                            cell.appendChild(colorStrip);
-                        }
-                        
-                        const nameDiv = document.createElement('div');
-                        nameDiv.textContent = property.name;
-                        cell.appendChild(nameDiv);
-                        
-                        if (property.price) {
-                            const priceDiv = document.createElement('div');
-                            priceDiv.textContent = `$${property.price}`;
-                            priceDiv.style.fontSize = '7px';
-                            cell.appendChild(priceDiv);
-                        }
-                        
-                        cell.id = `property-${PROPERTIES.indexOf(property)}`;
-                    } else if ((row === 0 || row === 10) || (col === 0 || col === 10)) {
-                        // Border cells without properties
-                        cell.className = 'property';
-                        cell.style.background = '#f0f8f0';
-                    } else {
-                        // Center area
-                        cell.style.background = '#f0f8f0';
-                        if (row === 5 && col === 5) {
-                            cell.innerHTML = '<div style="font-size: 20px; font-weight: bold; color: #333;">MONOPOLY</div>';
-                            cell.style.display = 'flex';
-                            cell.style.justifyContent = 'center';
-                            cell.style.alignItems = 'center';
+
+        // NBT Parser (simplified for .mcstructure format)
+        function parseNBT(buffer) {
+            const view = new DataView(buffer);
+            let offset = 0;
+
+            // Simple NBT reader for .mcstructure files
+            // This is a basic implementation - real NBT parsing is more complex
+            const nbt = {
+                size: [16, 16, 16], // Default size
+                blocks: [],
+                palette: []
+            };
+
+            try {
+                // Skip NBT header and find structure data
+                // In real implementation, would properly parse NBT structure
+                
+                // Generate sample data for demonstration
+                for (let x = 0; x < nbt.size[0]; x++) {
+                    for (let y = 0; y < nbt.size[1]; y++) {
+                        for (let z = 0; z < nbt.size[2]; z++) {
+                            if (Math.random() > 0.7) { // 30% chance of block
+                                nbt.blocks.push({
+                                    x: x - nbt.size[0]/2,
+                                    y: y,
+                                    z: z - nbt.size[2]/2,
+                                    type: Math.floor(Math.random() * 4)
+                                });
+                            }
                         }
                     }
-                    
-                    board.appendChild(cell);
                 }
+            } catch (error) {
+                console.error('NBT parsing error:', error);
             }
-        }
-        
-        function openPropertyModal(property) {
-            if (property.type === 'corner' || property.type === 'chance' || property.type === 'chest' || property.type === 'tax') {
-                return; // These can't be owned
-            }
-            
-            const modal = document.getElementById('propertyModal');
-            const title = document.getElementById('modalTitle');
-            const content = document.getElementById('modalContent');
-            
-            title.textContent = property.name;
-            
-            const owner = players.find(p => p.properties.some(prop => prop.name === property.name));
-            
-            let modalHTML = `<p><strong>Price:</strong> $${property.price}</p>`;
-            
-            if (owner) {
-                modalHTML += `<p><strong>Owner:</strong> ${owner.name}</p>`;
-                
-                if (property.type === 'property') {
-                    const houses = owner.houses[property.name] || 0;
-                    modalHTML += `<p><strong>Houses:</strong> ${houses}</p>`;
-                    
-                    modalHTML += `
-                        <div style="margin: 10px 0;">
-                            <button class="btn" onclick="addHouse('${property.name}', ${owner.id})">Add House ($50)</button>
-                            <button class="btn btn-danger" onclick="removeHouse('${property.name}', ${owner.id})">Remove House</button>
-                        </div>
-                    `;
-                }
-                
-                modalHTML += `<button class="btn btn-danger" onclick="sellProperty('${property.name}', ${owner.id})">Sell Property</button>`;
-            } else {
-                modalHTML += `<p><strong>Status:</strong> Available</p>`;
-                modalHTML += `<div style="margin: 10px 0;">`;
-                players.forEach(player => {
-                    modalHTML += `<button class="btn" onclick="buyProperty('${property.name}', ${player.id})" style="margin: 2px; padding: 5px; font-size: 12px;">${player.name} Buy</button>`;
-                });
-                modalHTML += `</div>`;
-            }
-            
-            content.innerHTML = modalHTML;
-            modal.style.display = 'flex';
-        }
-        
-        function buyProperty(propertyName, playerId) {
-            const property = PROPERTIES.find(p => p.name === propertyName);
-            const player = players[playerId];
-            
-            if (player.money < property.price) {
-                alert('Insufficient funds!');
-                return;
-            }
-            
-            player.money -= property.price;
-            player.properties.push(property);
-            
-            updatePropertyDisplay(property, player);
-            updatePlayersDisplay();
-            closeModal();
-        }
-        
-        function sellProperty(propertyName, playerId) {
-            const property = PROPERTIES.find(p => p.name === propertyName);
-            const player = players[playerId];
-            
-            // Remove houses first
-            if (player.houses[propertyName]) {
-                player.money += (player.houses[propertyName] * 25); // Half price for houses
-                delete player.houses[propertyName];
-            }
-            
-            player.money += Math.floor(property.price * 0.5); // Half price for property
-            player.properties = player.properties.filter(p => p.name !== propertyName);
-            
-            const propertyElement = document.getElementById(`property-${PROPERTIES.indexOf(property)}`);
-            propertyElement.classList.remove('owned');
-            
-            // Remove owner indicator and houses
-            const ownerIndicator = propertyElement.querySelector('.owner-indicator');
-            const housesIndicator = propertyElement.querySelector('.houses');
-            if (ownerIndicator) ownerIndicator.remove();
-            if (housesIndicator) housesIndicator.remove();
-            
-            updatePlayersDisplay();
-            closeModal();
-        }
-        
-        function addHouse(propertyName, playerId) {
-            const player = players[playerId];
-            
-            if (player.money < 50) {
-                alert('Insufficient funds for house!');
-                return;
-            }
-            
-            const currentHouses = player.houses[propertyName] || 0;
-            if (currentHouses >= 5) {
-                alert('Maximum houses/hotels reached!');
-                return;
-            }
-            
-            player.money -= 50;
-            player.houses[propertyName] = currentHouses + 1;
-            
-            const property = PROPERTIES.find(p => p.name === propertyName);
-            updatePropertyDisplay(property, player);
-            updatePlayersDisplay();
-            closeModal();
-        }
-        
-        function removeHouse(propertyName, playerId) {
-            const player = players[playerId];
-            
-            if (!player.houses[propertyName] || player.houses[propertyName] === 0) {
-                alert('No houses to remove!');
-                return;
-            }
-            
-            player.money += 25; // Half price back
-            player.houses[propertyName]--;
-            
-            if (player.houses[propertyName] === 0) {
-                delete player.houses[propertyName];
-            }
-            
-            const property = PROPERTIES.find(p => p.name === propertyName);
-            updatePropertyDisplay(property, player);
-            updatePlayersDisplay();
-            closeModal();
-        }
-        
-        function updatePropertyDisplay(property, owner) {
-            const propertyElement = document.getElementById(`property-${PROPERTIES.indexOf(property)}`);
-            propertyElement.classList.add('owned');
-            
-            // Remove existing indicators
-            const existingOwner = propertyElement.querySelector('.owner-indicator');
-            const existingHouses = propertyElement.querySelector('.houses');
-            if (existingOwner) existingOwner.remove();
-            if (existingHouses) existingHouses.remove();
-            
-            // Add owner indicator
-            const ownerIndicator = document.createElement('div');
-            ownerIndicator.className = 'owner-indicator';
-            ownerIndicator.style.backgroundColor = owner.color;
-            propertyElement.appendChild(ownerIndicator);
-            
-            // Add houses indicator
-            if (property.type === 'property' && owner.houses[property.name] > 0) {
-                const housesIndicator = document.createElement('div');
-                housesIndicator.className = `houses ${owner.houses[property.name] === 5 ? 'hotel' : ''}`;
-                housesIndicator.textContent = owner.houses[property.name] === 5 ? 'H' : owner.houses[property.name];
-                propertyElement.appendChild(housesIndicator);
-            }
-        }
-        
-        function closeModal() {
-            document.getElementById('propertyModal').style.display = 'none';
-        }
-        
-        // Close modal when clicking outside
-        document.getElementById('propertyModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
-        });
-        
-        // Init<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monopoly Game Counter</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #2c3e50, #34495e);
-            color: white;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 20px;
-            height: calc(100vh - 40px);
-        }
-        
-        .sidebar {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        
-        .main-content {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        
-        .board-container {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 600px;
-        }
-        
-        .board {
-            width: 600px;
-            height: 600px;
-            background: #f0f8f0;
-            border: 3px solid #000;
-            position: relative;
-            display: grid;
-            grid-template-columns: repeat(11, 1fr);
-            grid-template-rows: repeat(11, 1fr);
-        }
-        
-        .property {
-            border: 1px solid #000;
-            background: white;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            font-size: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            position: relative;
-            color: black;
-            text-align: center;
-            padding: 2px;
-        }
-        
-        .property:hover {
-            background: #f0f0f0;
-        }
-        
-        .property.owned {
-            background: #ffeb3b;
-        }
-        
-        .corner {
-            font-size: 10px;
-        }
-        
-        .color-strip {
-            width: 100%;
-            height: 8px;
-            margin-bottom: 2px;
-        }
-        
-        .brown { background: #8B4513; }
-        .light-blue { background: #87CEEB; }
-        .pink { background: #FF69B4; }
-        .orange { background: #FFA500; }
-        .red { background: #FF0000; }
-        .yellow { background: #FFFF00; }
-        .green { background: #008000; }
-        .dark-blue { background: #00008B; }
-        .railroad { background: #000; }
-        .utility { background: #FFF; border: 2px solid #000; }
-        
-        .houses {
-            position: absolute;
-            top: 2px;
-            right: 2px;
-            background: green;
-            color: white;
-            border-radius: 50%;
-            width: 12px;
-            height: 12px;
-            font-size: 8px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .hotel {
-            background: red;
-        }
-        
-        .owner-indicator {
-            position: absolute;
-            bottom: 2px;
-            left: 2px;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            border: 1px solid #000;
-        }
-        
-        .setup-section, .players-section, .transfer-section {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-        }
-        
-        .section-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #3498db;
-        }
-        
-        .input-group {
-            margin-bottom: 10px;
-        }
-        
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
-        
-        .input-group input, .input-group select {
-            width: 100%;
-            padding: 8px;
-            border: none;
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.9);
-            color: black;
-        }
-        
-        .btn {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            width: 100%;
-            margin-top: 5px;
-        }
-        
-        .btn:hover {
-            background: #2980b9;
-        }
-        
-        .btn-danger {
-            background: #e74c3c;
-        }
-        
-        .btn-danger:hover {
-            background: #c0392b;
-        }
-        
-        .player-card {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 6px;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-        
-        .player-name {
-            font-weight: bold;
-            margin-bottom: 5px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .player-color {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            border: 2px solid white;
-        }
-        
-        .player-money {
-            font-size: 16px;
-            color: #2ecc71;
-            margin-bottom: 5px;
-        }
-        
-        .player-properties {
-            font-size: 12px;
-            opacity: 0.8;
-        }
-        
-        .transfer-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        
-        .property-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        
-        .modal-content {
-            background: white;
-            color: black;
-            padding: 20px;
-            border-radius: 10px;
-            width: 300px;
-            max-width: 90%;
-        }
-        
-        .modal-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
-        
-        .close-btn {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-        }
-        
-        @media (max-width: 1200px) {
-            .container {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto 1fr;
-            }
-            
-            .sidebar {
-                height: auto;
-                max-height: 400px;
-            }
-            
-            .board {
-                width: 500px;
-                height: 500px;
-            }
-        }
-        
-        @media (max-width: 600px) {
-            .board {
-                width: 350px;
-                height: 350px;
-            }
-            
-            .property {
-                font-size: 6px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="sidebar">
-            <div class="setup-section">
-                <div class="section-title">Game Setup</div>
-                <div class="input-group">
-                    <label>Number of Players:</label>
-                    <input type="number" id="numPlayers" min="2" max="8" value="4">
-                </div>
-                <button class="btn" onclick="setupGame()">Start New Game</button>
-            </div>
-            
-            <div class="players-section" id="playersSection" style="display: none;">
-                <div class="section-title">Players</div>
-                <div id="playersList"></div>
-            </div>
-            
-            <div class="transfer-section" id="transferSection" style="display: none;">
-                <div class="section-title">Transfer Money</div>
-                <div class="transfer-grid">
-                    <div class="input-group">
-                        <label>From:</label>
-                        <select id="fromPlayer"></select>
-                    </div>
-                    <div class="input-group">
-                        <label>To:</label>
-                        <select id="toPlayer"></select>
-                    </div>
-                </div>
-                <div class="input-group">
-                    <label>Amount:</label>
-                    <input type="number" id="transferAmount" min="1">
-                </div>
-                <button class="btn" onclick="transferMoney()">Transfer</button>
-            </div>
-        </div>
-        
-        <div class="main-content">
-            <div class="board-container">
-                <div class="board" id="gameBoard"></div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="property-modal" id="propertyModal">
-        <div class="modal-content">
-            <button class="close-btn" onclick="closeModal()">&times;</button>
-            <div class="modal-title" id="modalTitle"></div>
-            <div id="modalContent"></div>
-        </div>
-    </div>
 
-    <script>
-        const PLAYER_COLORS = ['#FF0000', '#0000FF', '#00FF00', '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500', '#800080'];
-        
-        const PROPERTIES = [
-            // Bottom row (left to right)
-            {name: 'GO', type: 'corner', position: [10, 10]},
-            {name: 'Mediterranean Ave', type: 'property', color: 'brown', price: 60, position: [10, 9]},
-            {name: 'Community Chest', type: 'chest', position: [10, 8]},
-            {name: 'Baltic Ave', type: 'property', color: 'brown', price: 60, position: [10, 7]},
-            {name: 'Income Tax', type: 'tax', position: [10, 6]},
-            {name: 'Reading Railroad', type: 'railroad', price: 200, position: [10, 5]},
-            {name: 'Oriental Ave', type: 'property', color: 'light-blue', price: 100, position: [10, 4]},
-            {name: 'Chance', type: 'chance', position: [10, 3]},
-            {name: 'Vermont Ave', type: 'property', color: 'light-blue', price: 100, position: [10, 2]},
-            {name: 'Connecticut Ave', type: 'property', color: 'light-blue', price: 120, position: [10, 1]},
-            {name: 'JAIL', type: 'corner', position: [10, 0]},
-            
-            // Left side (bottom to top)
-            {name: 'St. Charles Place', type: 'property', color: 'pink', price: 140, position: [9, 0]},
-            {name: 'Electric Company', type: 'utility', price: 150, position: [8, 0]},
-            {name: 'States Ave', type: 'property', color: 'pink', price: 140, position: [7, 0]},
-            {name: 'Virginia Ave', type: 'property', color: 'pink', price: 160, position: [6, 0]},
-            {name: 'Pennsylvania Railroad', type: 'railroad', price: 200, position: [5, 0]},
-            {name: 'St. James Place', type: 'property', color: 'orange', price: 180, position: [4, 0]},
-            {name: 'Community Chest', type: 'chest', position: [3, 0]},
-            {name: 'Tennessee Ave', type: 'property', color: 'orange', price: 180, position: [2, 0]},
-            {name: 'New York Ave', type: 'property', color: 'orange', price: 200, position: [1, 0]},
-            {name: 'FREE PARKING', type: 'corner', position: [0, 0]},
-            
-            // Top side (left to right)
-            {name: 'Kentucky Ave', type: 'property', color: 'red', price: 220, position: [0, 1]},
-            {name: 'Chance', type: 'chance', position: [0, 2]},
-            {name: 'Indiana Ave', type: 'property', color: 'red', price: 220, position: [0, 3]},
-            {name: 'Illinois Ave', type: 'property', color: 'red', price: 240, position: [0, 4]},
-            {name: 'B&O Railroad', type: 'railroad', price: 200, position: [0, 5]},
-            {name: 'Atlantic Ave', type: 'property', color: 'yellow', price: 260, position: [0, 6]},
-            {name: 'Ventnor Ave', type: 'property', color: 'yellow', price: 260, position: [0, 7]},
-            {name: 'Water Works', type: 'utility', price: 150, position: [0, 8]},
-            {name: 'Marvin Gardens', type: 'property', color: 'yellow', price: 280, position: [0, 9]},
-            {name: 'GO TO JAIL', type: 'corner', position: [0, 10]},
-            
-            // Right side (top to bottom)
-            {name: 'Pacific Ave', type: 'property', color: 'green', price: 300, position: [1, 10]},
-            {name: 'North Carolina Ave', type: 'property', color: 'green', price: 300, position: [2, 10]},
-            {name: 'Community Chest', type: 'chest', position: [3, 10]},
-            {name: 'Pennsylvania Ave', type: 'property', color: 'green', price: 320, position: [4, 10]},
-            {name: 'Short Line Railroad', type: 'railroad', price: 200, position: [5, 10]},
-            {name: 'Chance', type: 'chance', position: [6, 10]},
-            {name: 'Park Place', type: 'property', color: 'dark-blue', price: 350, position: [7, 10]},
-            {name: 'Luxury Tax', type: 'tax', position: [8, 10]},
-            {name: 'Boardwalk', type: 'property', color: 'dark-blue', price: 400, position: [9, 10]}
-        ];
-        
-        let players = [];
-        let gameStarted = false;
-        
-        function setupGame() {
-            const numPlayers = parseInt(document.getElementById('numPlayers').value);
-            players = [];
-            
-            for (let i = 0; i < numPlayers; i++) {
-                players.push({
-                    id: i,
-                    name: `Player ${i + 1}`,
-                    money: 1500,
-                    color: PLAYER_COLORS[i],
-                    properties: [],
-                    houses: {}
-                });
-            }
-            
-            gameStarted = true;
-            updatePlayersDisplay();
-            updateTransferSelects();
-            createBoard();
-            
-            document.getElementById('playersSection').style.display = 'block';
-            document.getElementById('transferSection').style.display = 'block';
+            return nbt;
         }
-        
-        function updatePlayersDisplay() {
-            const playersList = document.getElementById('playersList');
-            playersList.innerHTML = '';
+
+        // File handling
+        document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            document.getElementById('loadingScreen').style.display = 'block';
+            document.getElementById('fileInfo').textContent = `Loading: ${file.name}`;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const nbtData = parseNBT(e.target.result);
+                    createStructureFromNBT(nbtData);
+                    
+                    document.getElementById('loadingScreen').style.display = 'none';
+                    document.getElementById('infoPanel').style.display = 'block';
+                    document.getElementById('fileInfo').textContent = 
+                        `Loaded: ${file.name} (${nbtData.size[0]}×${nbtData.size[1]}×${nbtData.size[2]})`;
+                    updateStructureInfo();
+                } catch (error) {
+                    showError('Error parsing structure file: ' + error.message);
+                    document.getElementById('loadingScreen').style.display = 'none';
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function createStructureFromNBT(nbtData) {
+            // Clear existing structure
+            if (structureGroup) {
+                scene.remove(structureGroup);
+            }
+
+            structureGroup = new THREE.Group();
+            blocks = [];
+
+            // Block materials
+            const materials = [
+                new THREE.MeshLambertMaterial({ color: 0x8B4513 }), // Wood
+                new THREE.MeshLambertMaterial({ color: 0x808080 }), // Stone  
+                new THREE.MeshLambertMaterial({ color: 0x228B22 }), // Grass
+                new THREE.MeshLambertMaterial({ color: 0xFF6347 }), // Brick
+            ];
+
+            const blockGeometry = new THREE.BoxGeometry(1, 1, 1);
+
+            // Create blocks from NBT data
+            nbtData.blocks.forEach(blockData => {
+                const block = new THREE.Mesh(blockGeometry, materials[blockData.type % materials.length]);
+                block.position.set(blockData.x, blockData.y, blockData.z);
+                
+                // Add wireframe geometry for outline mode
+                const wireframe = new THREE.WireframeGeometry(blockGeometry);
+                const wireframeMesh = new THREE.LineSegments(wireframe, 
+                    new THREE.LineBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.8 }));
+                wireframeMesh.position.copy(block.position);
+                wireframeMesh.visible = false;
+                
+                block.userData = {
+                    wireframe: wireframeMesh,
+                    layer: blockData.y,
+                    originalMaterial: block.material
+                };
+                
+                structureGroup.add(block);
+                structureGroup.add(wireframeMesh);
+                blocks.push(block);
+            });
+
+            scene.add(structureGroup);
             
-            players.forEach(player => {
-                const playerCard = document.createElement('div');
-                playerCard.className = 'player-card';
+            // Update layer info
+            totalLayers = Math.max(...blocks.map(b => b.userData.layer)) + 1;
+            currentLayer = 0;
+            updateLayerDisplay();
+            
+            structureData = {
+                blocks: blocks.length,
+                size: `${nbtData.size[0]}×${nbtData.size[1]}×${nbtData.size[2]}`
+            };
+        }
+
+        function setView(viewType) {
+            currentView = viewType;
+            
+            // Update button states
+            document.querySelectorAll('.view-controls .control-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update camera
+            const view = viewPositions[viewType];
+            camera.position.set(...view.pos);
+            camera.lookAt(...view.target);
+            camera.up.set(...view.up);
+            camera.zoom = 1;
+            camera.updateProjectionMatrix();
+            
+            // Update view label
+            document.getElementById('viewLabel').textContent = viewType.toUpperCase() + ' VIEW';
+            
+            // Reset structure rotation for orthographic views
+            if (structureGroup && viewType !== 'iso') {
+                structureGroup.rotation.set(0, 0, 0);
+            }
+        }
+
+        function setRenderMode(mode) {
+            if (!structureGroup) return;
+
+            currentRenderMode = mode;
+            
+            // Update button states
+            document.querySelectorAll('#solidBtn, #wireframeBtn, #outlineBtn').forEach(btn => 
+                btn.classList.remove('active'));
+            document.getElementById(mode + 'Btn').classList.add('active');
+
+            blocks.forEach(block => {
+                const wireframe = block.userData.wireframe;
                 
-                const ownedProperties = player.properties.map(prop => prop.name).join(', ') || 'None';
-                
-                playerCard.innerHTML = `
-                    <div class="player-name">
-                        <div class="player-color" style="background-color: ${player.color}"></div>
-                        <input type="text" value="${player.name}" onchange="updatePlayerName(${player.id}, this.value)" style="background: transparent; border: none; color: white; font-weight: bold;">
-                    </div>
-                    <div class="player-money">$${player.money}</div>
-                    <div class="player-properties">Properties: ${ownedProperties}</div>
-                    <div style="display: flex; gap: 5px; margin-top: 5px;">
-                        <button class="btn" style="padding: 5px; font-size: 12px;" onclick="adjustMoney(${player.id}, 50)">+$50</button>
-                        <button class="btn" style="padding: 5px; font-size: 12px;" onclick="adjustMoney(${player.id}, 200)">+$200</button>
-                        <button class="btn btn-danger" style="padding: 5px; font-size: 12px;" onclick="adjustMoney(${player.id}, -50)">-$50</button>
-                    </div>
-                `;
-                
-                playersList.appendChild(playerCard);
+                switch(mode) {
+                    case 'solid':
+                        block.visible = true;
+                        wireframe.visible = false;
+                        block.material = block.userData.originalMaterial;
+                        break;
+                    case 'wireframe':
+                        block.visible = false;
+                        wireframe.visible = true;
+                        break;
+                    case 'outline':
+                        block.visible = true;
+                        wireframe.visible = true;
+                        block.material = new THREE.MeshBasicMaterial({ 
+                            color: 0x004466, 
+                            transparent: true, 
+                            opacity: 0.3 
+                        });
+                        break;
+                }
             });
         }
-        
-        function updatePlayerName(playerId, newName) {
-            players[playerId].name = newName;
-            updateTransferSelects();
-        }
-        
-        function adjustMoney(playerId, amount) {
-            players[playerId].money += amount;
-            if (players[playerId].money < 0) players[playerId].money = 0;
-            updatePlayersDisplay();
-        }
-        
-        function updateTransferSelects() {
-            const fromSelect = document.getElementById('fromPlayer');
-            const toSelect = document.getElementById('toPlayer');
+
+        function changeLayer(direction) {
+            if (!blocks.length) return;
             
-            fromSelect.innerHTML = '';
-            toSelect.innerHTML = '';
+            currentLayer = Math.max(0, Math.min(totalLayers - 1, currentLayer + direction));
+            showAllLayers = false;
+            updateLayerDisplay();
+            updateLayerVisibility();
+        }
+
+        function toggleLayerMode() {
+            showAllLayers = !showAllLayers;
+            updateLayerDisplay();
+            updateLayerVisibility();
             
-            players.forEach(player => {
-                const option1 = document.createElement('option');
-                option1.value = player.id;
-                option1.textContent = player.name;
-                fromSelect.appendChild(option1);
+            const btn = event.target;
+            btn.textContent = showAllLayers ? 'Show Single Layer' : 'Show All Layers';
+        }
+
+        function updateLayerDisplay() {
+            const display = showAllLayers ? 'All Layers' : `Layer: ${currentLayer + 1} / ${totalLayers}`;
+            document.getElementById('layerDisplay').textContent = display;
+        }
+
+        function updateLayerVisibility() {
+            if (!blocks.length) return;
+            
+            blocks.forEach(block => {
+                const wireframe = block.userData.wireframe;
+                const blockLayer = block.userData.layer;
+                const shouldShow = showAllLayers || blockLayer === currentLayer;
                 
-                const option2 = document.createElement('option');
-                option2.value = player.id;
-                option2.textContent = player.name;
-                toSelect.appendChild(option2);
+                if (currentRenderMode === 'solid') {
+                    block.visible = shouldShow;
+                    wireframe.visible = false;
+                } else if (currentRenderMode === 'wireframe') {
+                    block.visible = false;
+                    wireframe.visible = shouldShow;
+                } else { // outline
+                    block.visible = shouldShow;
+                    wireframe.visible = shouldShow;
+                }
             });
         }
-        
-        function transferMoney() {
-            const fromId = parseInt(document.getElementById('fromPlayer').value);
-            const toId = parseInt(document.getElementById('toPlayer').value);
-            const amount = parseInt(document.getElementById('transferAmount').value);
-            
-            if (fromId === toId) {
-                alert('Cannot transfer to the same player!');
-                return;
-            }
-            
-            if (!amount || amount <= 0) {
-                alert('Please enter a valid amount!');
-                return;
-            }
-            
-            if (players[fromId].money < amount) {
-                alert('Insufficient funds!');
-                return;
-            }
-            
-            players[fromId].money -= amount;
-            players[toId].money += amount;
-            
-            document.getElementById('transferAmount').value = '';
-            updatePlayersDisplay();
-        }
-        
-        function createBoard() {
-            const board = document.getElementById('gameBoard');
-            board.innerHTML = '';
-            
-            // Create 11x11 grid
-            for (let row = 0; row < 11; row++) {
-                for (let col = 0; col < 11; col++) {
-                    const cell = document.createElement('div');
-                    
-                    // Find property at this position
-                    const property = PROPERTIES.find(p => p.position[0] === row && p.position[1] === col);
-                    
-                    if (property) {
-                        cell.className = `property ${property.type === 'corner' ? 'corner' : ''}`;
-                        cell.onclick = () => openPropertyModal(property);
-                        
-                        if (property.color) {
-                            const colorStrip = document.createElement('div');
-                            colorStrip.className = `color-strip ${property.color}`;
-                            cell.appendChild(colorStrip);
-                        }
-                        
-                        const nameDiv = document.createElement('div');
-                        nameDiv.textContent = property.name;
-                        cell.appendChild(nameDiv);
-                        
-                        if (property.price) {
-                            const priceDiv = document.createElement('div');
-                            priceDiv.textContent = `$${property.price}`;
-                            priceDiv.style.fontSize = '7px';
-                            cell.appendChild(priceDiv);
-                        }
-                        
-                        cell.id = `property-${PROPERTIES.indexOf(property)}`;
-                    } else if ((row === 0 || row === 10) || (col === 0 || col === 10)) {
-                        // Border cells without properties
-                        cell.className = 'property';
-                        cell.style.background = '#f0f8f0';
-                    } else {
-                        // Center area
-                        cell.style.background = '#f0f8f0';
-                        if (row === 5 && col === 5) {
-                            cell.innerHTML = '<div style="font-size: 20px; font-weight: bold; color: #333;">MONOPOLY</div>';
-                            cell.style.display = 'flex';
-                            cell.style.justifyContent = 'center';
-                            cell.style.alignItems = 'center';
-                        }
-                    }
-                    
-                    board.appendChild(cell);
-                }
-            }
-        }
-        
-        function openPropertyModal(property) {
-            if (property.type === 'corner' || property.type === 'chance' || property.type === 'chest' || property.type === 'tax') {
-                return; // These can't be owned
-            }
-            
-            const modal = document.getElementById('propertyModal');
-            const title = document.getElementById('modalTitle');
-            const content = document.getElementById('modalContent');
-            
-            title.textContent = property.name;
-            
-            const owner = players.find(p => p.properties.some(prop => prop.name === property.name));
-            
-            let modalHTML = `<p><strong>Price:</strong> $${property.price}</p>`;
-            
-            if (owner) {
-                modalHTML += `<p><strong>Owner:</strong> ${owner.name}</p>`;
-                
-                if (property.type === 'property') {
-                    const houses = owner.houses[property.name] || 0;
-                    modalHTML += `<p><strong>Houses:</strong> ${houses}</p>`;
-                    
-                    modalHTML += `
-                        <div style="margin: 10px 0;">
-                            <button class="btn" onclick="addHouse('${property.name}', ${owner.id})">Add House ($50)</button>
-                            <button class="btn btn-danger" onclick="removeHouse('${property.name}', ${owner.id})">Remove House</button>
-                        </div>
-                    `;
-                }
-                
-                modalHTML += `<button class="btn btn-danger" onclick="sellProperty('${property.name}', ${owner.id})">Sell Property</button>`;
-            } else {
-                modalHTML += `<p><strong>Status:</strong> Available</p>`;
-                modalHTML += `<div style="margin: 10px 0;">`;
-                players.forEach(player => {
-                    modalHTML += `<button class="btn" onclick="buyProperty('${property.name}', ${player.id})" style="margin: 2px; padding: 5px; font-size: 12px;">${player.name} Buy</button>`;
-                });
-                modalHTML += `</div>`;
-            }
-            
-            content.innerHTML = modalHTML;
-            modal.style.display = 'flex';
-        }
-        
-        function buyProperty(propertyName, playerId) {
-            const property = PROPERTIES.find(p => p.name === propertyName);
-            const player = players[playerId];
-            
-            if (player.money < property.price) {
-                alert('Insufficient funds!');
-                return;
-            }
-            
-            player.money -= property.price;
-            player.properties.push(property);
-            
-            updatePropertyDisplay(property, player);
-            updatePlayersDisplay();
-            closeModal();
-        }
-        
-        function sellProperty(propertyName, playerId) {
-            const property = PROPERTIES.find(p => p.name === propertyName);
-            const player = players[playerId];
-            
-            // Remove houses first
-            if (player.houses[propertyName]) {
-                player.money += (player.houses[propertyName] * 25); // Half price for houses
-                delete player.houses[propertyName];
-            }
-            
-            player.money += Math.floor(property.price * 0.5); // Half price for property
-            player.properties = player.properties.filter(p => p.name !== propertyName);
-            
-            const propertyElement = document.getElementById(`property-${PROPERTIES.indexOf(property)}`);
-            propertyElement.classList.remove('owned');
-            
-            // Remove owner indicator and houses
-            const ownerIndicator = propertyElement.querySelector('.owner-indicator');
-            const housesIndicator = propertyElement.querySelector('.houses');
-            if (ownerIndicator) ownerIndicator.remove();
-            if (housesIndicator) housesIndicator.remove();
-            
-            updatePlayersDisplay();
-            closeModal();
-        }
-        
-        function addHouse(propertyName, playerId) {
-            const player = players[playerId];
-            
-            if (player.money < 50) {
-                alert('Insufficient funds for house!');
-                return;
-            }
-            
-            const currentHouses = player.houses[propertyName] || 0;
-            if (currentHouses >= 5) {
-                alert('Maximum houses/hotels reached!');
-                return;
-            }
-            
-            player.money -= 50;
-            player.houses[propertyName] = currentHouses + 1;
-            
-            const property = PROPERTIES.find(p => p.name === propertyName);
-            updatePropertyDisplay(property, player);
-            updatePlayersDisplay();
-            closeModal();
-        }
-        
-        function removeHouse(propertyName, playerId) {
-            const player = players[playerId];
-            
-            if (!player.houses[propertyName] || player.houses[propertyName] === 0) {
-                alert('No houses to remove!');
-                return;
-            }
-            
-            player.money += 25; // Half price back
-            player.houses[propertyName]--;
-            
-            if (player.houses[propertyName] === 0) {
-                delete player.houses[propertyName];
-            }
-            
-            const property = PROPERTIES.find(p => p.name === propertyName);
-            updatePropertyDisplay(property, player);
-            updatePlayersDisplay();
-            closeModal();
-        }
-        
-        function updatePropertyDisplay(property, owner) {
-            const propertyElement = document.getElementById(`property-${PROPERTIES.indexOf(property)}`);
-            propertyElement.classList.add('owned');
-            
-            // Remove existing indicators
-            const existingOwner = propertyElement.querySelector('.owner-indicator');
-            const existingHouses = propertyElement.querySelector('.houses');
-            if (existingOwner) existingOwner.remove();
-            if (existingHouses) existingHouses.remove();
-            
-            // Add owner indicator
-            const ownerIndicator = document.createElement('div');
-            ownerIndicator.className = 'owner-indicator';
-            ownerIndicator.style.backgroundColor = owner.color;
-            propertyElement.appendChild(ownerIndicator);
-            
-            // Add houses indicator
-            if (property.type === 'property' && owner.houses[property.name] > 0) {
-                const housesIndicator = document.createElement('div');
-                housesIndicator.className = `houses ${owner.houses[property.name] === 5 ? 'hotel' : ''}`;
-                housesIndicator.textContent = owner.houses[property.name] === 5 ? 'H' : owner.houses[property.name];
-                propertyElement.appendChild(housesIndicator);
-            }
-        }
-        
-        function closeModal() {
-            document.getElementById('propertyModal').style.display = 'none';
-        }
-        
-        // Close modal when clicking outside
-        document.getElementById('propertyModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
-        });
-        
-        // Initialize board on load
-        createBoard();
-    </script>
-</body>
-</html>ialize board on load
-        createBoard();
-    </script>
-</body>
-</html>
 
-#coding
+        function updateGridOpacity(value) {
+            const grid = document.querySelector('#blueprintGrid path');
+            if (grid) {
+                grid.setAttribute('opacity', value);
+            }
+        }
+
+        function resetView() {
+            setView(currentView);
+            if (structureGroup) {
+                structureGroup.rotation.set(0, 0, 0);
+            }
+        }
+
+        function fitToScreen() {
+            if (!structureGroup) return;
+            
+            const box = new THREE.Box3().setFromObject(structureGroup);
+            const size = box.getSize(new THREE.Vector3()).length();
+            const center = box.getCenter(new THREE.Vector3());
+            
+            camera.zoom = 50 / size;
+            camera.updateProjectionMatrix();
+        }
+
+        function updateStructureInfo() {
+            if (structureData) {
+                document.getElementById('structureInfo').innerHTML = `
+                    Blocks: ${structureData.blocks}
