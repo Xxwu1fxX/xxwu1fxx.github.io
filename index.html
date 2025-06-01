@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Structure Blueprint Analyzer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
         * {
             margin: 0;
             padding: 0;
@@ -12,232 +15,186 @@
         }
         
         body {
-            font-family: 'Courier New', monospace;
-            background: #0a0f1c;
+            font-family: 'Orbitron', monospace;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #00ffff;
             overflow: hidden;
-            color: #64b5f6;
-            letter-spacing: 0.5px;
-        }
-        
-        #container {
-            position: relative;
-            width: 100vw;
             height: 100vh;
         }
         
-        #viewer {
-            width: 100%;
-            height: 100%;
-            display: block;
+        .container {
+            display: flex;
+            height: 100vh;
         }
         
-        #controls {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(10, 15, 28, 0.9);
+        .sidebar {
+            width: 300px;
+            background: rgba(0, 20, 40, 0.9);
+            backdrop-filter: blur(10px);
+            border-right: 2px solid #00ffff;
             padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #1e88e5;
-            box-shadow: 0 0 20px rgba(30, 136, 229, 0.3);
-            z-index: 100;
-            min-width: 280px;
+            overflow-y: auto;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
         }
         
-        #controls::before {
-            content: '';
-            position: absolute;
-            top: -1px;
-            left: -1px;
-            right: -1px;
-            bottom: -1px;
-            background: linear-gradient(45deg, #1e88e5, #42a5f5, #1e88e5);
-            border-radius: 8px;
-            z-index: -1;
-            opacity: 0.3;
+        .main-content {
+            flex: 1;
+            position: relative;
         }
         
-        .control-header {
-            color: #42a5f5;
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 15px;
+        .title {
+            font-size: 24px;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px #00ffff;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .upload-zone {
+            border: 2px dashed #00ffff;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s;
+            background: rgba(0, 255, 255, 0.1);
+        }
+        
+        .upload-zone:hover {
+            background: rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+        
+        .upload-zone.dragover {
+            border-color: #ff00ff;
+            background: rgba(255, 0, 255, 0.2);
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #00ffff, #0080ff);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            color: #000;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
             text-transform: uppercase;
             letter-spacing: 1px;
-            border-bottom: 1px solid #1e88e5;
-            padding-bottom: 8px;
         }
         
-        #fileInput {
-            margin-bottom: 15px;
-            padding: 10px;
-            border: 1px solid #1e88e5;
-            border-radius: 4px;
-            background: rgba(30, 136, 229, 0.1);
-            color: #64b5f6;
-            cursor: pointer;
-            width: 100%;
-            font-family: 'Courier New', monospace;
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 255, 0.4);
         }
         
-        #fileInput::file-selector-button {
-            background: linear-gradient(45deg, #1e88e5, #42a5f5);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-right: 10px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
+        .controls {
+            margin-top: 20px;
         }
         
         .control-group {
-            margin-bottom: 18px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(0, 255, 255, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
         }
         
-        .control-group label {
+        .control-label {
             display: block;
             margin-bottom: 8px;
-            font-size: 12px;
-            color: #90caf9;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
         }
         
-        .control-group input[type="range"] {
+        select, input[type="range"] {
             width: 100%;
-            margin-bottom: 8px;
-            background: transparent;
-            -webkit-appearance: none;
+            background: rgba(0, 20, 40, 0.8);
+            border: 1px solid #00ffff;
+            color: #00ffff;
+            padding: 8px;
+            border-radius: 4px;
+            font-family: 'Orbitron', monospace;
         }
         
-        .control-group input[type="range"]::-webkit-slider-track {
-            background: #1e88e5;
-            height: 4px;
-            border-radius: 2px;
+        input[type="range"] {
+            height: 8px;
+            -webkit-appearance: none;
+            background: linear-gradient(to right, #00ffff, #0080ff);
+            border-radius: 4px;
         }
         
-        .control-group input[type="range"]::-webkit-slider-thumb {
+        input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            background: #42a5f5;
-            height: 16px;
-            width: 16px;
+            width: 20px;
+            height: 20px;
+            background: #00ffff;
             border-radius: 50%;
             cursor: pointer;
-            box-shadow: 0 0 8px rgba(66, 165, 245, 0.5);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
         }
         
-        .control-group button {
-            background: linear-gradient(45deg, #1e88e5, #42a5f5);
-            color: white;
-            border: 1px solid #1e88e5;
-            padding: 8px 14px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-right: 8px;
-            margin-bottom: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            transition: all 0.3s ease;
+        .viewer {
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #001122 0%, #000000 70%);
+            position: relative;
         }
         
-        .control-group button:hover {
-            background: linear-gradient(45deg, #42a5f5, #64b5f6);
-            box-shadow: 0 0 12px rgba(30, 136, 229, 0.6);
-            transform: translateY(-1px);
-        }
-        
-        .control-group button.active {
-            background: linear-gradient(45deg, #ff6b35, #f7931e);
-            border-color: #ff6b35;
-        }
-        
-        #info {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(10, 15, 28, 0.9);
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #1e88e5;
-            box-shadow: 0 0 20px rgba(30, 136, 229, 0.3);
-            font-size: 12px;
-            min-width: 280px;
-        }
-        
-        #instructions {
+        .loading {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
-            background: rgba(10, 15, 28, 0.95);
-            padding: 40px;
-            border-radius: 12px;
-            border: 2px solid #1e88e5;
-            box-shadow: 0 0 40px rgba(30, 136, 229, 0.4);
-            max-width: 500px;
+            z-index: 100;
         }
         
-        #instructions h2 {
-            margin-bottom: 20px;
-            color: #42a5f5;
-            font-size: 24px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        
-        #instructions p {
-            margin-bottom: 15px;
-            line-height: 1.6;
-            color: #90caf9;
-        }
-        
-        .demo-button {
-            background: linear-gradient(45deg, #1e88e5, #42a5f5);
-            color: white;
-            border: 2px solid #1e88e5;
-            padding: 15px 30px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            font-family: 'Courier New', monospace;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin: 15px;
-            transition: all 0.3s ease;
-        }
-        
-        .demo-button:hover {
-            background: linear-gradient(45deg, #42a5f5, #64b5f6);
-            box-shadow: 0 0 20px rgba(30, 136, 229, 0.7);
-            transform: scale(1.05);
-        }
-        
-        .value-display {
-            color: #42a5f5;
-            font-weight: bold;
-            font-size: 11px;
-        }
-        
-        .status-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
+        .spinner {
+            border: 4px solid rgba(0, 255, 255, 0.3);
+            border-top: 4px solid #00ffff;
             border-radius: 50%;
-            background: #4caf50;
-            margin-right: 8px;
-            animation: pulse 2s infinite;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
         }
         
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .info-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 20, 40, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #00ffff;
+            backdrop-filter: blur(10px);
+        }
+        
+        .error {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid #ff0000;
+            color: #ff6666;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
         }
         
         .grid-overlay {
@@ -247,744 +204,372 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
-            opacity: 0.1;
             background-image: 
-                linear-gradient(rgba(30, 136, 229, 0.5) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(30, 136, 229, 0.5) 1px, transparent 1px);
-            background-size: 20px 20px;
-            z-index: 1;
+                linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+        }
+        
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
         }
     </style>
 </head>
 <body>
-    <div class="grid-overlay"></div>
-    <div id="container">
-        <canvas id="viewer"></canvas>
-        
-        <div id="controls">
-            <div class="control-header">
-                <span class="status-indicator"></span>
-                Structure Analyzer
-            </div>
-            <input type="file" id="fileInput" accept=".mcstructure,.nbt" />
+    <div class="container">
+        <div class="sidebar">
+            <h1 class="title">STRUCTURE<br>ANALYZER</h1>
             
-            <div class="control-group">
-                <label>Display Mode</label>
-                <button id="wireframeBtn" onclick="toggleWireframe()">Wireframe</button>
-                <button id="solidBtn" onclick="toggleSolid()" class="active">Solid</button>
-                <button onclick="toggleGrid()">Grid</button>
+            <div class="upload-zone" id="uploadZone">
+                <div>📁 DROP .MCSTRUCTURE FILE</div>
+                <div style="margin: 15px 0;">OR</div>
+                <button class="btn" onclick="document.getElementById('fileInput').click()">
+                    SELECT FILE
+                </button>
+                <input type="file" id="fileInput" accept=".mcstructure" />
             </div>
             
-            <div class="control-group">
-                <label>View Controls</label>
-                <button onclick="resetView()">Reset View</button>
-                <button onclick="topView()">Top View</button>
-                <button onclick="sideView()">Side View</button>
-            </div>
-            
-            <div class="control-group">
-                <label>Block Scale</label>
-                <input type="range" id="blockSize" min="0.3" max="2.5" step="0.1" value="1" onchange="updateBlockSize(this.value)">
-                <span class="value-display" id="blockSizeValue">1.0</span>
-            </div>
-            
-            <div class="control-group">
-                <label>Layer Analysis</label>
-                <input type="range" id="layerSlice" min="0" max="10" step="1" value="10" onchange="updateLayerSlice(this.value)">
-                <span class="value-display" id="layerValue">All Layers</span>
+            <div class="controls" id="controls" style="display: none;">
+                <div class="control-group">
+                    <label class="control-label">VIEW MODE</label>
+                    <select id="viewMode">
+                        <option value="solid">Solid Blocks</option>
+                        <option value="wireframe">Wireframe Grid</option>
+                        <option value="transparent">Transparent</option>
+                        <option value="outline">Block Outlines</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label class="control-label">ZOOM LEVEL</label>
+                    <input type="range" id="zoomSlider" min="0.1" max="3" step="0.1" value="1" />
+                </div>
+                
+                <div class="control-group">
+                    <label class="control-label">ROTATION SPEED</label>
+                    <input type="range" id="rotationSpeed" min="0" max="0.02" step="0.001" value="0.005" />
+                </div>
+                
+                <div class="control-group">
+                    <button class="btn" onclick="resetView()">RESET VIEW</button>
+                </div>
             </div>
         </div>
         
-        <div id="info">
-            <div class="control-header" style="margin-bottom: 10px; font-size: 12px;">Navigation</div>
-            <div><strong>LEFT DRAG:</strong> Rotate structure</div>
-            <div><strong>WHEEL:</strong> Zoom in/out</div>
-            <div><strong>RIGHT DRAG:</strong> Pan view</div>
-            <div id="structureInfo" style="margin-top: 12px; padding-top: 8px; border-top: 1px solid #1e88e5;"></div>
-        </div>
-        
-        <div id="instructions">
-            <h2>⚡ Blueprint Analyzer</h2>
-            <p>Load Minecraft structure files for advanced 3D blueprint analysis</p>
-            <p>Supports .mcstructure and .nbt formats with real-time visualization</p>
-            <button class="demo-button" onclick="loadDemoStructure()">Initialize Demo Structure</button>
-            <p style="margin-top: 20px; font-size: 11px; opacity: 0.6;">
-                PROTOTYPE v1.0 - Full NBT parsing integration pending
-            </p>
+        <div class="main-content">
+            <div class="viewer" id="viewer">
+                <div class="grid-overlay"></div>
+                <div class="loading" id="loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <div>ANALYZING STRUCTURE...</div>
+                </div>
+            </div>
+            
+            <div class="info-panel" id="infoPanel" style="display: none;">
+                <div><strong>DIMENSIONS:</strong> <span id="dimensions">-</span></div>
+                <div><strong>BLOCKS:</strong> <span id="blockCount">-</span></div>
+                <div><strong>STATUS:</strong> <span id="status">READY</span></div>
+            </div>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        let scene, camera, renderer;
-        let structureGroup;
-        let displayMode = 'solid'; // 'solid', 'wireframe', 'grid'
-        let showGrid = false;
-        let maxLayers = 10;
-        let currentLayer = 10;
+        let scene, camera, renderer, structure, controls;
+        let currentViewMode = 'solid';
+        let autoRotate = true;
+        let rotationSpeedValue = 0.005;
         
-        // Enhanced block definitions with proper shapes and orientations
-        const blockTypes = {
-            'stone': { 
-                color: 0x7a7a7a, 
-                shape: 'cube', 
-                emissive: 0x0f1419,
-                opacity: 0.9
-            },
-            'cobblestone': { 
-                color: 0x6b6b6b, 
-                shape: 'cube', 
-                emissive: 0x0a0f16,
-                opacity: 0.9
-            },
-            'wood_planks': { 
-                color: 0x8b6914, 
-                shape: 'cube', 
-                emissive: 0x1a1406,
-                opacity: 0.9
-            },
-            'wood_log': { 
-                color: 0x4a3c1a, 
-                shape: 'cylinder', 
-                emissive: 0x0f0c05,
-                opacity: 0.9
-            },
-            'glass': { 
-                color: 0x64b5f6, 
-                shape: 'cube', 
-                emissive: 0x1e3a5f,
-                opacity: 0.3,
-                transparent: true
-            },
-            'brick': { 
-                color: 0x8b3a3a, 
-                shape: 'cube', 
-                emissive: 0x1c0c0c,
-                opacity: 0.9
-            },
-            'wool': { 
-                color: 0x90caf9, 
-                shape: 'cube', 
-                emissive: 0x1a2937,
-                opacity: 0.8
-            },
-            'stairs': { 
-                color: 0x7a7a7a, 
-                shape: 'stairs', 
-                emissive: 0x0f1419,
-                opacity: 0.9
-            },
-            'slab': { 
-                color: 0x7a7a7a, 
-                shape: 'slab', 
-                emissive: 0x0f1419,
-                opacity: 0.9
-            },
-            'fence': { 
-                color: 0x8b6914, 
-                shape: 'fence', 
-                emissive: 0x1a1406,
-                opacity: 0.9
-            },
-            'door': { 
-                color: 0x8b6914, 
-                shape: 'door', 
-                emissive: 0x1a1406,
-                opacity: 0.9
-            }
+        // Block color mapping (simplified)
+        const blockColors = {
+            'minecraft:stone': 0x808080,
+            'minecraft:dirt': 0x8B4513,
+            'minecraft:grass_block': 0x32CD32,
+            'minecraft:wood': 0xDEB887,
+            'minecraft:cobblestone': 0x696969,
+            'minecraft:water': 0x0066CC,
+            'minecraft:glass': 0xE6F3FF,
+            'minecraft:sand': 0xFAD5A5,
+            'minecraft:brick': 0xB22222,
+            'minecraft:iron_block': 0xD3D3D3,
+            'minecraft:gold_block': 0xFFD700,
+            'minecraft:diamond_block': 0x40E0D0,
+            'default': 0x888888
         };
         
-        init();
-        animate();
-        
         function init() {
-            // Scene setup with blueprint-style environment
+            // Scene setup
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x0a0f1c);
-            scene.fog = new THREE.Fog(0x0a0f1c, 80, 300);
+            scene.background = new THREE.Color(0x000510);
             
             // Camera setup
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(25, 20, 25);
-            camera.lookAt(0, 5, 0);
+            const viewerElement = document.getElementById('viewer');
+            camera = new THREE.PerspectiveCamera(75, viewerElement.clientWidth / viewerElement.clientHeight, 0.1, 1000);
+            camera.position.set(20, 20, 20);
             
-            // Renderer setup with enhanced visual quality
-            renderer = new THREE.WebGLRenderer({ 
-                canvas: document.getElementById('viewer'), 
-                antialias: true,
-                alpha: true
-            });
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            // Renderer setup
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(viewerElement.clientWidth, viewerElement.clientHeight);
+            renderer.setClearColor(0x000510, 1);
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            renderer.toneMappingExposure = 1.2;
+            viewerElement.appendChild(renderer.domElement);
             
-            // Advanced lighting setup
-            setupLighting();
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x00ffff, 0.3);
+            scene.add(ambientLight);
             
-            // Enhanced controls
+            const directionalLight = new THREE.DirectionalLight(0x00ffff, 0.8);
+            directionalLight.position.set(50, 50, 50);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+            
+            const pointLight = new THREE.PointLight(0xff00ff, 0.5, 100);
+            pointLight.position.set(-20, 20, -20);
+            scene.add(pointLight);
+            
+            // Controls
             setupControls();
             
             // Event listeners
-            document.getElementById('fileInput').addEventListener('change', handleFileUpload);
-            window.addEventListener('resize', onWindowResize);
-        }
-        
-        function setupLighting() {
-            // Ambient light for overall illumination
-            const ambientLight = new THREE.AmbientLight(0x1e88e5, 0.3);
-            scene.add(ambientLight);
+            setupEventListeners();
             
-            // Main directional light
-            const mainLight = new THREE.DirectionalLight(0x42a5f5, 1.2);
-            mainLight.position.set(40, 60, 30);
-            mainLight.castShadow = true;
-            mainLight.shadow.mapSize.width = 4096;
-            mainLight.shadow.mapSize.height = 4096;
-            mainLight.shadow.camera.near = 0.5;
-            mainLight.shadow.camera.far = 200;
-            mainLight.shadow.camera.left = -50;
-            mainLight.shadow.camera.right = 50;
-            mainLight.shadow.camera.top = 50;
-            mainLight.shadow.camera.bottom = -50;
-            scene.add(mainLight);
-            
-            // Secondary fill light
-            const fillLight = new THREE.DirectionalLight(0x64b5f6, 0.6);
-            fillLight.position.set(-30, 40, -20);
-            scene.add(fillLight);
-            
-            // Rim light for edge definition
-            const rimLight = new THREE.DirectionalLight(0x90caf9, 0.4);
-            rimLight.position.set(0, 20, -40);
-            scene.add(rimLight);
+            // Animation loop
+            animate();
         }
         
         function setupControls() {
-            let isMouseDown = false;
-            let mouseButton = 0;
-            let mouseX = 0, mouseY = 0;
-            let targetRotationX = 0.3, targetRotationY = 0.5;
-            let currentRotationX = 0.3, currentRotationY = 0.5;
-            let panX = 0, panY = 0;
-            let distance = 40;
-            
-            const canvas = document.getElementById('viewer');
-            
-            canvas.addEventListener('mousedown', (event) => {
-                isMouseDown = true;
-                mouseButton = event.button;
-                mouseX = event.clientX;
-                mouseY = event.clientY;
-                event.preventDefault();
+            document.getElementById('viewMode').addEventListener('change', (e) => {
+                currentViewMode = e.target.value;
+                updateViewMode();
             });
             
-            canvas.addEventListener('mousemove', (event) => {
-                if (isMouseDown) {
-                    const deltaX = event.clientX - mouseX;
-                    const deltaY = event.clientY - mouseY;
-                    
-                    if (mouseButton === 0) { // Left button - rotate
-                        targetRotationY += deltaX * 0.008;
-                        targetRotationX += deltaY * 0.008;
-                        targetRotationX = Math.max(-Math.PI/2 + 0.1, Math.min(Math.PI/2 - 0.1, targetRotationX));
-                    } else if (mouseButton === 2) { // Right button - pan
-                        panX -= deltaX * 0.02;
-                        panY += deltaY * 0.02;
-                    }
-                    
-                    mouseX = event.clientX;
-                    mouseY = event.clientY;
+            document.getElementById('zoomSlider').addEventListener('input', (e) => {
+                const scale = parseFloat(e.target.value);
+                if (structure) {
+                    structure.scale.set(scale, scale, scale);
                 }
             });
             
-            canvas.addEventListener('mouseup', () => {
-                isMouseDown = false;
+            document.getElementById('rotationSpeed').addEventListener('input', (e) => {
+                rotationSpeedValue = parseFloat(e.target.value);
+            });
+        }
+        
+        function setupEventListeners() {
+            const uploadZone = document.getElementById('uploadZone');
+            const fileInput = document.getElementById('fileInput');
+            
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('dragover');
             });
             
-            canvas.addEventListener('contextmenu', (event) => {
-                event.preventDefault();
+            uploadZone.addEventListener('dragleave', () => {
+                uploadZone.classList.remove('dragover');
             });
             
-            canvas.addEventListener('wheel', (event) => {
-                distance += event.deltaY * 0.02;
-                distance = Math.max(8, Math.min(150, distance));
-                event.preventDefault();
-            });
-            
-            // Smooth camera animation
-            function updateCamera() {
-                currentRotationX += (targetRotationX - currentRotationX) * 0.08;
-                currentRotationY += (targetRotationY - currentRotationY) * 0.08;
-                
-                const targetX = Math.cos(currentRotationY) * Math.cos(currentRotationX) * distance + panX;
-                const targetY = Math.sin(currentRotationX) * distance + panY + 5;
-                const targetZ = Math.sin(currentRotationY) * Math.cos(currentRotationX) * distance;
-                
-                camera.position.x += (targetX - camera.position.x) * 0.08;
-                camera.position.y += (targetY - camera.position.y) * 0.08;
-                camera.position.z += (targetZ - camera.position.z) * 0.08;
-                
-                camera.lookAt(panX, panY + 5, 0);
-                
-                requestAnimationFrame(updateCamera);
-            }
-            updateCamera();
-        }
-        
-        function createBlockGeometry(blockType, blockSize = 1) {
-            const type = blockTypes[blockType] || blockTypes['stone'];
-            
-            switch (type.shape) {
-                case 'cylinder':
-                    return new THREE.CylinderGeometry(blockSize * 0.4, blockSize * 0.4, blockSize, 8);
-                    
-                case 'stairs':
-                    const stairsGroup = new THREE.Group();
-                    // Bottom step
-                    const bottomStep = new THREE.Mesh(
-                        new THREE.BoxGeometry(blockSize, blockSize * 0.5, blockSize),
-                        createBlockMaterial(blockType)
-                    );
-                    bottomStep.position.y = -blockSize * 0.25;
-                    stairsGroup.add(bottomStep);
-                    
-                    // Top step
-                    const topStep = new THREE.Mesh(
-                        new THREE.BoxGeometry(blockSize, blockSize * 0.5, blockSize * 0.5),
-                        createBlockMaterial(blockType)
-                    );
-                    topStep.position.y = blockSize * 0.25;
-                    topStep.position.z = blockSize * 0.25;
-                    stairsGroup.add(topStep);
-                    
-                    return stairsGroup;
-                    
-                case 'slab':
-                    return new THREE.BoxGeometry(blockSize, blockSize * 0.5, blockSize);
-                    
-                case 'fence':
-                    const fenceGroup = new THREE.Group();
-                    // Posts
-                    const post1 = new THREE.Mesh(
-                        new THREE.BoxGeometry(blockSize * 0.2, blockSize, blockSize * 0.2),
-                        createBlockMaterial(blockType)
-                    );
-                    post1.position.set(-blockSize * 0.3, 0, 0);
-                    fenceGroup.add(post1);
-                    
-                    const post2 = new THREE.Mesh(
-                        new THREE.BoxGeometry(blockSize * 0.2, blockSize, blockSize * 0.2),
-                        createBlockMaterial(blockType)
-                    );
-                    post2.position.set(blockSize * 0.3, 0, 0);
-                    fenceGroup.add(post2);
-                    
-                    // Rails
-                    const rail1 = new THREE.Mesh(
-                        new THREE.BoxGeometry(blockSize * 0.8, blockSize * 0.1, blockSize * 0.1),
-                        createBlockMaterial(blockType)
-                    );
-                    rail1.position.y = blockSize * 0.2;
-                    fenceGroup.add(rail1);
-                    
-                    const rail2 = new THREE.Mesh(
-                        new THREE.BoxGeometry(blockSize * 0.8, blockSize * 0.1, blockSize * 0.1),
-                        createBlockMaterial(blockType)
-                    );
-                    rail2.position.y = -blockSize * 0.2;
-                    fenceGroup.add(rail2);
-                    
-                    return fenceGroup;
-                    
-                case 'door':
-                    return new THREE.BoxGeometry(blockSize * 0.2, blockSize * 2, blockSize);
-                    
-                default: // cube
-                    return new THREE.BoxGeometry(blockSize, blockSize, blockSize);
-            }
-        }
-        
-        function createBlockMaterial(blockType) {
-            const type = blockTypes[blockType] || blockTypes['stone'];
-            
-            const material = new THREE.MeshPhongMaterial({
-                color: type.color,
-                emissive: type.emissive || 0x000000,
-                transparent: type.transparent || false,
-                opacity: type.opacity || 1,
-                shininess: 10,
-                specular: 0x1e88e5
-            });
-            
-            if (displayMode === 'wireframe') {
-                material.wireframe = true;
-            }
-            
-            return material;
-        }
-        
-        function handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            document.getElementById('instructions').style.display = 'none';
-            createRandomStructure();
-            
-            document.getElementById('structureInfo').innerHTML = 
-                `<div><strong>FILE:</strong> ${file.name}</div>
-                 <div><strong>STATUS:</strong> <span style="color: #4caf50;">Loaded</span></div>`;
-        }
-        
-        function loadDemoStructure() {
-            document.getElementById('instructions').style.display = 'none';
-            createAdvancedDemoStructure();
-        }
-        
-        function createAdvancedDemoStructure() {
-            clearStructure();
-            
-            const blockSize = parseFloat(document.getElementById('blockSize').value);
-            structureGroup = new THREE.Group();
-            
-            // Create a more complex structure with different block types
-            const structureData = [
-                // Foundation
-                ...createFoundation(0, 0, 0, 12, 12),
-                // Walls with windows and doors
-                ...createWallsWithFeatures(0, 1, 0, 12, 5, 12),
-                // Interior elements
-                ...createInteriorFeatures(2, 1, 2, 8, 8),
-                // Roof structure
-                ...createRoofStructure(0, 6, 0, 12, 12),
-                // Decorative elements
-                ...createDecorations()
-            ];
-            
-            let blockCount = 0;
-            maxLayers = 0;
-            
-            structureData.forEach(block => {
-                if (block.y > maxLayers) maxLayers = block.y;
-                if (currentLayer < 10 && block.y > currentLayer) return;
-                
-                const geometry = createBlockGeometry(block.type, blockSize);
-                
-                if (geometry instanceof THREE.Group) {
-                    geometry.position.set(
-                        (block.x - 6) * blockSize,
-                        block.y * blockSize,
-                        (block.z - 6) * blockSize
-                    );
-                    if (block.rotation) {
-                        geometry.rotation.y = block.rotation;
-                    }
-                    structureGroup.add(geometry);
-                } else {
-                    const material = createBlockMaterial(block.type);
-                    const mesh = new THREE.Mesh(geometry, material);
-                    
-                    mesh.position.set(
-                        (block.x - 6) * blockSize,
-                        block.y * blockSize,
-                        (block.z - 6) * blockSize
-                    );
-                    
-                    if (block.rotation) {
-                        mesh.rotation.y = block.rotation;
-                    }
-                    
-                    mesh.castShadow = true;
-                    mesh.receiveShadow = true;
-                    
-                    structureGroup.add(mesh);
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFile(files[0]);
                 }
-                blockCount++;
             });
             
-            scene.add(structureGroup);
-            
-            // Update layer slider
-            document.getElementById('layerSlice').max = maxLayers + 1;
-            document.getElementById('layerSlice').value = maxLayers + 1;
-            
-            document.getElementById('structureInfo').innerHTML = 
-                `<div><strong>STRUCTURE:</strong> Advanced Demo</div>
-                 <div><strong>BLOCKS:</strong> ${blockCount}</div>
-                 <div><strong>LAYERS:</strong> ${maxLayers + 1}</div>
-                 <div><strong>STATUS:</strong> <span style="color: #4caf50;">Active</span></div>`;
-        }
-        
-        function createFoundation(x, y, z, width, depth) {
-            const blocks = [];
-            for (let i = 0; i < width; i++) {
-                for (let k = 0; k < depth; k++) {
-                    blocks.push({x: x + i, y: y, z: z + k, type: 'stone'});
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFile(e.target.files[0]);
                 }
-            }
-            return blocks;
+            });
+            
+            window.addEventListener('resize', () => {
+                const viewerElement = document.getElementById('viewer');
+                camera.aspect = viewerElement.clientWidth / viewerElement.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(viewerElement.clientWidth, viewerElement.clientHeight);
+            });
         }
         
-        function createWallsWithFeatures(x, y, z, width, height, depth) {
-            const blocks = [];
-            for (let i = 0; i < width; i++) {
-                for (let j = 0; j < height; j++) {
-                    for (let k = 0; k < depth; k++) {
-                        if (i === 0 || i === width - 1 || k === 0 || k === depth - 1) {
-                            // Door opening
-                            if (i === width/2 && k === 0 && j < 3) {
-                                if (j === 0) blocks.push({x: x + i, y: y + j, z: z + k, type: 'door'});
-                                continue;
-                            }
-                            // Window openings
-                            if (((i === 2 || i === width - 3) && k === 0 && j === 2) ||
-                                ((k === 2 || k === depth - 3) && i === 0 && j === 2)) {
-                                blocks.push({x: x + i, y: y + j, z: z + k, type: 'glass'});
-                            } else {
-                                blocks.push({x: x + i, y: y + j, z: z + k, type: 'cobblestone'});
-                            }
-                        }
-                    }
+        function handleFile(file) {
+            if (!file.name.endsWith('.mcstructure')) {
+                showError('Please select a valid .mcstructure file');
+                return;
+            }
+            
+            showLoading(true);
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    // Parse the structure file (simplified parsing for demo)
+                    parseStructure(e.target.result);
+                } catch (error) {
+                    showError('Error parsing structure file: ' + error.message);
+                    showLoading(false);
                 }
-            }
-            return blocks;
+            };
+            reader.readAsArrayBuffer(file);
         }
         
-        function createInteriorFeatures(x, y, z, width, depth) {
+        function parseStructure(data) {
+            // This is a simplified parser - in reality you'd need to properly parse NBT data
+            // For demo purposes, we'll create a sample structure
+            createSampleStructure();
+            
+            setTimeout(() => {
+                showLoading(false);
+                document.getElementById('controls').style.display = 'block';
+                document.getElementById('infoPanel').style.display = 'block';
+                document.getElementById('status').textContent = 'LOADED';
+            }, 1500);
+        }
+        
+        function createSampleStructure() {
+            // Clear existing structure
+            if (structure) {
+                scene.remove(structure);
+            }
+            
+            structure = new THREE.Group();
+            
+            // Create a sample building structure
             const blocks = [];
-            // Interior pillars
-            for (let j = 0; j < 4; j++) {
-                blocks.push({x: x + 2, y: y + j, z: z + 2, type: 'wood_log'});
-                blocks.push({x: x + width - 3, y: y + j, z: z + depth - 3, type: 'wood_log'});
-            }
-            // Some furniture-like structures
-            blocks.push({x: x + 1, y: y, z: z + 1, type: 'wood_planks'});
-            blocks.push({x: x + 1, y: y, z: z + 2, type: 'slab', rotation: 0});
-            return blocks;
-        }
-        
-        function createRoofStructure(x, y, z, width, depth) {
-            const blocks = [];
-            const centerX = width / 2;
-            
-            for (let i = 0; i < width; i++) {
-                for (let k = 0; k < depth; k++) {
-                    const distanceFromCenter = Math.abs(i - centerX);
-                    const roofY = 3 - Math.floor(distanceFromCenter / 2);
-                    if (roofY > 0) {
-                        blocks.push({
-                            x: x + i, 
-                            y: y + roofY - 1, 
-                            z: z + k, 
-                            type: 'wood_planks'
-                        });
-                    }
-                }
-            }
-            return blocks;
-        }
-        
-        function createDecorations() {
-            const blocks = [];
-            // Add some fence posts around the structure
-            for (let i = -1; i <= 13; i += 4) {
-                blocks.push({x: i, y: 1, z: -1, type: 'fence'});
-                blocks.push({x: i, y: 1, z: 13, type: 'fence'});
-            }
-            for (let k = -1; k <= 13; k += 4) {
-                blocks.push({x: -1, y: 1, z: k, type: 'fence'});
-                blocks.push({x: 13, y: 1, z: k, type: 'fence'});
-            }
-            return blocks;
-        }
-        
-        function createRandomStructure() {
-            clearStructure();
-            
-            const blockSize = parseFloat(document.getElementById('blockSize').value);
-            structureGroup = new THREE.Group();
-            
-            const blockTypeKeys = Object.keys(blockTypes);
-            let blockCount = 0;
-            maxLayers = 0;
-            
-            // Create a more interesting random structure
-            for (let x = 0; x < 15; x++) {
-                for (let y = 0; y < 12; y++) {
-                    for (let z = 0; z < 15; z++) {
-                        const noise = Math.sin(x * 0.3) * Math.cos(z * 0.3) * Math.sin(y * 0.5);
-                        if (noise > 0.2 || (y === 0 && Math.random() > 0.3)) { 
-                            if (y > maxLayers) maxLayers = y;
-                            if (currentLayer < 10 && y > currentLayer) continue;
-                            
-                            const blockType = blockTypeKeys[Math.floor(Math.random() * blockTypeKeys.length)];
-                            const geometry = createBlockGeometry(blockType, blockSize);
-                            
-                            if (geometry instanceof THREE.Group) {
-                                geometry.position.set(
-                                    (x - 7.5) * blockSize,
-                                    y * blockSize,
-                                    (z - 7.5) * blockSize
-                                );
-                                structureGroup.add(geometry);
-                            } else {
-                                const material = createBlockMaterial(blockType);
-                                const mesh = new THREE.Mesh(geometry, material);
-                                
-                                mesh.position.set(
-                                    (x - 7.5) * blockSize,
-                                    y * blockSize,
-                                    (z - 7.5) * blockSize
-                                );
-                                
-                                mesh.castShadow = true;
-                                mesh.receiveShadow = true;
-                                
-                                structureGroup.add(mesh);
-                            }
-                            blockCount++;
+            for (let x = -5; x <= 5; x++) {
+                for (let z = -5; z <= 5; z++) {
+                    for (let y = 0; y < 8; y++) {
+                        if (y === 0 || x === -5 || x === 5 || z === -5 || z === 5) {
+                            blocks.push({ x, y, z, type: 'minecraft:stone' });
+                        } else if (y === 7) {
+                            blocks.push({ x, y, z, type: 'minecraft:wood' });
                         }
                     }
                 }
             }
             
-            scene.add(structureGroup);
+            // Add some windows
+            for (let i = -3; i <= 3; i += 2) {
+                blocks.push({ x: 5, y: 3, z: i, type: 'minecraft:glass' });
+                blocks.push({ x: -5, y: 3, z: i, type: 'minecraft:glass' });
+                blocks.push({ x: i, y: 3, z: 5, type: 'minecraft:glass' });
+                blocks.push({ x: i, y: 3, z: -5, type: 'minecraft:glass' });
+            }
             
-            // Update layer slider
-            document.getElementById('layerSlice').max = maxLayers + 1;
-            document.getElementById('layerSlice').value = maxLayers + 1;
+            createBlocks(blocks);
             
-            document.getElementById('structureInfo').innerHTML = 
-                `<div><strong>STRUCTURE:</strong> Procedural</div>
-                 <div><strong>BLOCKS:</strong> ${blockCount}</div>
-                 <div><strong>LAYERS:</strong> ${maxLayers + 1}</div>
-                 <div><strong>STATUS:</strong> <span style="color: #4caf50;">Generated</span></div>`;
+            // Update info panel
+            document.getElementById('dimensions').textContent = '11x8x11';
+            document.getElementById('blockCount').textContent = blocks.length;
         }
         
-        function clearStructure() {
-            if (structureGroup) {
-                scene.remove(structureGroup);
-                structureGroup.traverse((child) => {
-                    if (child.geometry) child.geometry.dispose();
-                    if (child.material) {
-                        if (Array.isArray(child.material)) {
-                            child.material.forEach(material => material.dispose());
-                        } else {
-                            child.material.dispose();
-                        }
+        function createBlocks(blocks) {
+            blocks.forEach(block => {
+                const geometry = new THREE.BoxGeometry(1, 1, 1);
+                const color = blockColors[block.type] || blockColors.default;
+                const material = new THREE.MeshLambertMaterial({ color });
+                
+                const cube = new THREE.Mesh(geometry, material);
+                cube.position.set(block.x, block.y, block.z);
+                cube.userData = { blockType: block.type, originalMaterial: material };
+                
+                // Add edges for wireframe mode
+                const edges = new THREE.EdgesGeometry(geometry);
+                const lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ffff });
+                const wireframe = new THREE.LineSegments(edges, lineMaterial);
+                wireframe.position.copy(cube.position);
+                wireframe.visible = false;
+                cube.userData.wireframe = wireframe;
+                
+                structure.add(cube);
+                structure.add(wireframe);
+            });
+            
+            scene.add(structure);
+            
+            // Center the structure
+            const box = new THREE.Box3().setFromObject(structure);
+            const center = box.getCenter(new THREE.Vector3());
+            structure.position.sub(center);
+            
+            updateViewMode();
+        }
+        
+        function updateViewMode() {
+            if (!structure) return;
+            
+            structure.children.forEach(child => {
+                if (child.userData.blockType) {
+                    const wireframe = child.userData.wireframe;
+                    
+                    switch (currentViewMode) {
+                        case 'solid':
+                            child.visible = true;
+                            child.material = child.userData.originalMaterial;
+                            wireframe.visible = false;
+                            break;
+                        case 'wireframe':
+                            child.visible = false;
+                            wireframe.visible = true;
+                            break;
+                        case 'transparent':
+                            child.visible = true;
+                            child.material = new THREE.MeshLambertMaterial({
+                                color: child.userData.originalMaterial.color,
+                                transparent: true,
+                                opacity: 0.3
+                            });
+                            wireframe.visible = true;
+                            break;
+                        case 'outline':
+                            child.visible = true;
+                            child.material = child.userData.originalMaterial;
+                            wireframe.visible = true;
+                            break;
                     }
-                });
-                structureGroup = null;
-            }
-        }
-        
-        function toggleWireframe() {
-            displayMode = displayMode === 'wireframe' ? 'solid' : 'wireframe';
-            updateDisplayMode();
-        }
-        
-        function toggleSolid() {
-            displayMode = 'solid';
-            updateDisplayMode();
-        }
-        
-        function toggleGrid() {
-            showGrid = !showGrid;
-            const gridOverlay = document.querySelector('.grid-overlay');
-            gridOverlay.style.opacity = showGrid ? '0.2' : '0.1';
-        }
-        
-        function updateDisplayMode() {
-            // Update button states
-            document.getElementById('wireframeBtn').classList.toggle('active', displayMode === 'wireframe');
-            document.getElementById('solidBtn').classList.toggle('active', displayMode === 'solid');
-            
-            // Recreate structure with new display mode
-            if (structureGroup) {
-                const wasDemo = document.getElementById('structureInfo').innerHTML.includes('Advanced Demo');
-                if (wasDemo) {
-                    createAdvancedDemoStructure();
-                } else {
-                    createRandomStructure();
                 }
-            }
+            });
         }
         
         function resetView() {
-            targetRotationX = 0.3;
-            targetRotationY = 0.5;
-            panX = 0;
-            panY = 0;
-            distance = 40;
-        }
-        
-        function topView() {
-            targetRotationX = Math.PI / 2 - 0.1;
-            targetRotationY = 0;
-            panX = 0;
-            panY = -10;
-            distance = 50;
-        }
-        
-        function sideView() {
-            targetRotationX = 0;
-            targetRotationY = Math.PI / 2;
-            panX = 0;
-            panY = 0;
-            distance = 45;
-        }
-        
-        function updateBlockSize(value) {
-            document.getElementById('blockSizeValue').textContent = parseFloat(value).toFixed(1);
-            
-            if (structureGroup) {
-                const wasDemo = document.getElementById('structureInfo').innerHTML.includes('Advanced Demo');
-                if (wasDemo) {
-                    createAdvancedDemoStructure();
-                } else {
-                    createRandomStructure();
-                }
+            if (structure) {
+                structure.rotation.set(0, 0, 0);
+                structure.scale.set(1, 1, 1);
+                document.getElementById('zoomSlider').value = 1;
             }
+            camera.position.set(20, 20, 20);
+            camera.lookAt(0, 0, 0);
         }
         
-        function updateLayerSlice(value) {
-            currentLayer = parseInt(value);
-            const maxValue = parseInt(document.getElementById('layerSlice').max);
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+        
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+            document.querySelector('.sidebar').appendChild(errorDiv);
             
-            if (currentLayer >= maxValue) {
-                document.getElementById('layerValue').textContent = 'All Layers';
-                currentLayer = 10; // Show all
-            } else {
-                document.getElementById('layerValue').textContent = `Layer 0-${currentLayer}`;
-            }
-            
-            if (structureGroup) {
-                const wasDemo = document.getElementById('structureInfo').innerHTML.includes('Advanced Demo');
-                if (wasDemo) {
-                    createAdvancedDemoStructure();
-                } else {
-                    createRandomStructure();
-                }
-            }
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
         }
         
         function animate() {
             requestAnimationFrame(animate);
             
-            // Add subtle rotation to structure for dynamic effect
-            if (structureGroup) {
-                structureGroup.rotation.y += 0.001;
+            if (structure && autoRotate) {
+                structure.rotation.y += rotationSpeedValue;
             }
             
+            camera.lookAt(0, 0, 0);
             renderer.render(scene, camera);
         }
         
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
+        // Initialize the application
+        init();
     </script>
 </body>
 </html>
