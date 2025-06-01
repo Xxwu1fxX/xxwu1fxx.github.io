@@ -3,831 +3,988 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HoloBlueprint - Minecraft Structure Viewer</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <title>Structure Blueprint Analyzer</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
-        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
+        
         body {
-            font-family: 'Orbitron', monospace;
-            background: #0a0a0a;
-            color: #00ffff;
+            font-family: 'Courier New', monospace;
+            background: #0a0f1c;
             overflow: hidden;
+            color: #64b5f6;
+            letter-spacing: 0.5px;
+        }
+        
+        #container {
+            position: relative;
+            width: 100vw;
             height: 100vh;
         }
-
-        .container {
-            display: flex;
-            height: 100vh;
-            position: relative;
-        }
-
-        .sidebar {
-            width: 300px;
-            background: rgba(0, 20, 40, 0.95);
-            backdrop-filter: blur(10px);
-            border-right: 2px solid #00ffff;
-            padding: 20px;
-            overflow-y: auto;
-            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
-        }
-
-        .main-view {
-            flex: 1;
-            position: relative;
-            background: #0a0a0a;
-            overflow: hidden;
-        }
-
-        .logo {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
-        }
-
-        .logo h1 {
-            font-size: 24px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            background: linear-gradient(45deg, #00ffff, #0080ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 5px;
-        }
-
-        .logo p {
-            font-size: 10px;
-            color: #00aaff;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
-        .section {
-            margin-bottom: 25px;
-            padding: 15px;
-            background: rgba(0, 40, 80, 0.3);
-            border: 1px solid rgba(0, 255, 255, 0.2);
-            border-radius: 8px;
-            backdrop-filter: blur(5px);
-        }
-
-        .section h3 {
-            font-size: 14px;
-            margin-bottom: 15px;
-            color: #00ffff;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
-            padding-bottom: 5px;
-        }
-
-        .file-upload {
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
+        
+        #viewer {
             width: 100%;
+            height: 100%;
+            display: block;
         }
-
-        .file-upload input[type=file] {
+        
+        #controls {
             position: absolute;
-            left: -9999px;
+            top: 20px;
+            left: 20px;
+            background: rgba(10, 15, 28, 0.9);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #1e88e5;
+            box-shadow: 0 0 20px rgba(30, 136, 229, 0.3);
+            z-index: 100;
+            min-width: 280px;
         }
-
-        .file-upload-btn {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(45deg, #00ffff, #0080ff);
-            color: #000;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-family: 'Orbitron', monospace;
-            font-weight: 700;
+        
+        #controls::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            right: -1px;
+            bottom: -1px;
+            background: linear-gradient(45deg, #1e88e5, #42a5f5, #1e88e5);
+            border-radius: 8px;
+            z-index: -1;
+            opacity: 0.3;
+        }
+        
+        .control-header {
+            color: #42a5f5;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 15px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            border-bottom: 1px solid #1e88e5;
+            padding-bottom: 8px;
         }
-
-        .file-upload-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 25px rgba(0, 255, 255, 0.5);
-        }
-
-        .control-group {
+        
+        #fileInput {
             margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #1e88e5;
+            border-radius: 4px;
+            background: rgba(30, 136, 229, 0.1);
+            color: #64b5f6;
+            cursor: pointer;
+            width: 100%;
+            font-family: 'Courier New', monospace;
         }
-
+        
+        #fileInput::file-selector-button {
+            background: linear-gradient(45deg, #1e88e5, #42a5f5);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        
+        .control-group {
+            margin-bottom: 18px;
+        }
+        
         .control-group label {
             display: block;
             margin-bottom: 8px;
             font-size: 12px;
-            color: #00aaff;
+            color: #90caf9;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
-
-        .control-btn {
+        
+        .control-group input[type="range"] {
             width: 100%;
-            padding: 10px;
-            background: rgba(0, 255, 255, 0.1);
-            border: 1px solid #00ffff;
-            color: #00ffff;
+            margin-bottom: 8px;
+            background: transparent;
+            -webkit-appearance: none;
+        }
+        
+        .control-group input[type="range"]::-webkit-slider-track {
+            background: #1e88e5;
+            height: 4px;
+            border-radius: 2px;
+        }
+        
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            background: #42a5f5;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(66, 165, 245, 0.5);
+        }
+        
+        .control-group button {
+            background: linear-gradient(45deg, #1e88e5, #42a5f5);
+            color: white;
+            border: 1px solid #1e88e5;
+            padding: 8px 14px;
             border-radius: 4px;
             cursor: pointer;
-            font-family: 'Orbitron', monospace;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            font-family: 'Courier New', monospace;
             font-size: 11px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             transition: all 0.3s ease;
-            margin-bottom: 8px;
         }
-
-        .control-btn:hover, .control-btn.active {
-            background: rgba(0, 255, 255, 0.2);
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+        
+        .control-group button:hover {
+            background: linear-gradient(45deg, #42a5f5, #64b5f6);
+            box-shadow: 0 0 12px rgba(30, 136, 229, 0.6);
+            transform: translateY(-1px);
         }
-
-        .view-controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 15px;
+        
+        .control-group button.active {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border-color: #ff6b35;
         }
-
-        .layer-controls {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .layer-btn {
-            padding: 8px 12px;
-            background: rgba(0, 255, 255, 0.1);
-            border: 1px solid #00ffff;
-            color: #00ffff;
-            border-radius: 4px;
-            cursor: pointer;
-            font-family: 'Orbitron', monospace;
-            font-size: 10px;
-            text-transform: uppercase;
-        }
-
-        .layer-btn:hover {
-            background: rgba(0, 255, 255, 0.2);
-        }
-
-        .layer-display {
-            color: #00aaff;
-            font-size: 12px;
-            text-align: center;
-            flex: 1;
-        }
-
-        .slider {
-            width: 100%;
-            -webkit-appearance: none;
-            height: 6px;
-            border-radius: 3px;
-            background: rgba(0, 255, 255, 0.2);
-            outline: none;
-            margin: 10px 0;
-        }
-
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #00ffff;
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-        }
-
-        .info-panel {
+        
+        #info {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 20, 40, 0.95);
-            backdrop-filter: blur(10px);
+            bottom: 20px;
+            left: 20px;
+            background: rgba(10, 15, 28, 0.9);
             padding: 15px;
             border-radius: 8px;
-            border: 1px solid rgba(0, 255, 255, 0.3);
-            font-size: 11px;
-            color: #00aaff;
-            max-width: 250px;
-            z-index: 100;
+            border: 1px solid #1e88e5;
+            box-shadow: 0 0 20px rgba(30, 136, 229, 0.3);
+            font-size: 12px;
+            min-width: 280px;
         }
-
-        .loading {
+        
+        #instructions {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
-            color: #00ffff;
-            z-index: 200;
+            background: rgba(10, 15, 28, 0.95);
+            padding: 40px;
+            border-radius: 12px;
+            border: 2px solid #1e88e5;
+            box-shadow: 0 0 40px rgba(30, 136, 229, 0.4);
+            max-width: 500px;
         }
-
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(0, 255, 255, 0.3);
-            border-top: 3px solid #00ffff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+        
+        #instructions h2 {
+            margin-bottom: 20px;
+            color: #42a5f5;
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        
+        #instructions p {
+            margin-bottom: 15px;
+            line-height: 1.6;
+            color: #90caf9;
         }
-
-        .error {
-            color: #ff4444;
-            background: rgba(255, 68, 68, 0.1);
-            border: 1px solid #ff4444;
-            padding: 10px;
-            border-radius: 4px;
-            margin-top: 10px;
+        
+        .demo-button {
+            background: linear-gradient(45deg, #1e88e5, #42a5f5);
+            color: white;
+            border: 2px solid #1e88e5;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .demo-button:hover {
+            background: linear-gradient(45deg, #42a5f5, #64b5f6);
+            box-shadow: 0 0 20px rgba(30, 136, 229, 0.7);
+            transform: scale(1.05);
+        }
+        
+        .value-display {
+            color: #42a5f5;
+            font-weight: bold;
             font-size: 11px;
         }
-
-        #canvas-container {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            background: #0a0a0a;
+        
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4caf50;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
         }
-
-        .blueprint-grid {
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .grid-overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             pointer-events: none;
+            opacity: 0.1;
+            background-image: 
+                linear-gradient(rgba(30, 136, 229, 0.5) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(30, 136, 229, 0.5) 1px, transparent 1px);
+            background-size: 20px 20px;
             z-index: 1;
-        }
-
-        .view-label {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(0, 20, 40, 0.9);
-            padding: 10px 15px;
-            border-radius: 6px;
-            border: 1px solid rgba(0, 255, 255, 0.3);
-            font-size: 14px;
-            font-weight: 700;
-            color: #00ffff;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            z-index: 100;
-        }
-
-        .coordinates {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(0, 20, 40, 0.9);
-            padding: 10px 15px;
-            border-radius: 6px;
-            border: 1px solid rgba(0, 255, 255, 0.3);
-            font-size: 11px;
-            color: #00aaff;
-            z-index: 100;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="sidebar">
-            <div class="logo">
-                <h1>HoloBlueprint</h1>
-                <p>Structure Analyzer v3.0</p>
+    <div class="grid-overlay"></div>
+    <div id="container">
+        <canvas id="viewer"></canvas>
+        
+        <div id="controls">
+            <div class="control-header">
+                <span class="status-indicator"></span>
+                Structure Analyzer
             </div>
-
-            <div class="section">
-                <h3>File Import</h3>
-                <div class="file-upload">
-                    <input type="file" id="fileInput" accept=".mcstructure" />
-                    <button class="file-upload-btn" onclick="document.getElementById('fileInput').click()">
-                        Upload .mcstructure
-                    </button>
-                </div>
-                <div id="fileInfo" style="margin-top: 10px; font-size: 10px; color: #00aaff;"></div>
+            <input type="file" id="fileInput" accept=".mcstructure,.nbt" />
+            
+            <div class="control-group">
+                <label>Display Mode</label>
+                <button id="wireframeBtn" onclick="toggleWireframe()">Wireframe</button>
+                <button id="solidBtn" onclick="toggleSolid()" class="active">Solid</button>
+                <button onclick="toggleGrid()">Grid</button>
             </div>
-
-            <div class="section">
-                <h3>Blueprint Views</h3>
-                <div class="view-controls">
-                    <button class="control-btn" onclick="setView('top')">Top View</button>
-                    <button class="control-btn" onclick="setView('front')">Front View</button>
-                    <button class="control-btn" onclick="setView('side')">Side View</button>
-                    <button class="control-btn active" onclick="setView('iso')">Isometric</button>
-                </div>
+            
+            <div class="control-group">
+                <label>View Controls</label>
+                <button onclick="resetView()">Reset View</button>
+                <button onclick="topView()">Top View</button>
+                <button onclick="sideView()">Side View</button>
             </div>
-
-            <div class="section">
-                <h3>Layer Control</h3>
-                <div class="layer-controls">
-                    <button class="layer-btn" onclick="changeLayer(-1)">◀</button>
-                    <div class="layer-display" id="layerDisplay">Layer: 1 / 1</div>
-                    <button class="layer-btn" onclick="changeLayer(1)">▶</button>
-                </div>
-                <div class="control-group">
-                    <button class="control-btn" onclick="toggleLayerMode()">Show All Layers</button>
-                </div>
+            
+            <div class="control-group">
+                <label>Block Scale</label>
+                <input type="range" id="blockSize" min="0.3" max="2.5" step="0.1" value="1" onchange="updateBlockSize(this.value)">
+                <span class="value-display" id="blockSizeValue">1.0</span>
             </div>
-
-            <div class="section">
-                <h3>Display Options</h3>
-                <div class="control-group">
-                    <button class="control-btn active" id="solidBtn" onclick="setRenderMode('solid')">Solid Blocks</button>
-                    <button class="control-btn" id="wireframeBtn" onclick="setRenderMode('wireframe')">Wireframe</button>
-                    <button class="control-btn" id="outlineBtn" onclick="setRenderMode('outline')">Blueprint Lines</button>
-                </div>
-                <div class="control-group">
-                    <label>Grid Opacity</label>
-                    <input type="range" class="slider" id="gridSlider" min="0" max="1" step="0.1" value="0.5" onchange="updateGridOpacity(this.value)">
-                </div>
-            </div>
-
-            <div class="section">
-                <h3>Navigation</h3>
-                <div class="control-group">
-                    <button class="control-btn" onclick="resetView()">Reset View</button>
-                    <button class="control-btn" onclick="fitToScreen()">Fit to Screen</button>
-                </div>
+            
+            <div class="control-group">
+                <label>Layer Analysis</label>
+                <input type="range" id="layerSlice" min="0" max="10" step="1" value="10" onchange="updateLayerSlice(this.value)">
+                <span class="value-display" id="layerValue">All Layers</span>
             </div>
         </div>
-
-        <div class="main-view">
-            <div id="canvas-container">
-                <svg class="blueprint-grid" id="blueprintGrid"></svg>
-            </div>
-            
-            <div class="view-label" id="viewLabel">ISOMETRIC VIEW</div>
-            <div class="coordinates" id="coordinates">X: 0, Y: 0, Z: 0</div>
-            
-            <div class="info-panel" id="infoPanel" style="display: none;">
-                <div><strong>Structure Info:</strong></div>
-                <div id="structureInfo">No structure loaded</div>
-                <br>
-                <div><strong>Current Layer:</strong></div>
-                <div id="layerInfo">All layers visible</div>
-                <br>
-                <div><strong>Controls:</strong></div>
-                <div>• Mouse: Pan/Rotate view</div>
-                <div>• Scroll: Zoom in/out</div>
-                <div>• Layer buttons: Navigate layers</div>
-            </div>
-
-            <div class="loading" id="loadingScreen" style="display: none;">
-                <div class="loading-spinner"></div>
-                <div>Processing NBT structure data...</div>
-            </div>
+        
+        <div id="info">
+            <div class="control-header" style="margin-bottom: 10px; font-size: 12px;">Navigation</div>
+            <div><strong>LEFT DRAG:</strong> Rotate structure</div>
+            <div><strong>WHEEL:</strong> Zoom in/out</div>
+            <div><strong>RIGHT DRAG:</strong> Pan view</div>
+            <div id="structureInfo" style="margin-top: 12px; padding-top: 8px; border-top: 1px solid #1e88e5;"></div>
+        </div>
+        
+        <div id="instructions">
+            <h2>⚡ Blueprint Analyzer</h2>
+            <p>Load Minecraft structure files for advanced 3D blueprint analysis</p>
+            <p>Supports .mcstructure and .nbt formats with real-time visualization</p>
+            <button class="demo-button" onclick="loadDemoStructure()">Initialize Demo Structure</button>
+            <p style="margin-top: 20px; font-size: 11px; opacity: 0.6;">
+                PROTOTYPE v1.0 - Full NBT parsing integration pending
+            </p>
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        // Global variables
         let scene, camera, renderer;
         let structureGroup;
-        let currentView = 'iso';
-        let currentRenderMode = 'solid';
-        let structureData = null;
-        let currentLayer = 0;
-        let totalLayers = 1;
-        let showAllLayers = true;
-        let blocks = [];
-
-        // Camera positions for different views
-        const viewPositions = {
-            top: { pos: [0, 100, 0], target: [0, 0, 0], up: [0, 0, -1] },
-            front: { pos: [0, 0, 100], target: [0, 0, 0], up: [0, 1, 0] },
-            side: { pos: [100, 0, 0], target: [0, 0, 0], up: [0, 1, 0] },
-            iso: { pos: [50, 50, 50], target: [0, 0, 0], up: [0, 1, 0] }
+        let displayMode = 'solid'; // 'solid', 'wireframe', 'grid'
+        let showGrid = false;
+        let maxLayers = 10;
+        let currentLayer = 10;
+        
+        // Enhanced block definitions with proper shapes and orientations
+        const blockTypes = {
+            'stone': { 
+                color: 0x7a7a7a, 
+                shape: 'cube', 
+                emissive: 0x0f1419,
+                opacity: 0.9
+            },
+            'cobblestone': { 
+                color: 0x6b6b6b, 
+                shape: 'cube', 
+                emissive: 0x0a0f16,
+                opacity: 0.9
+            },
+            'wood_planks': { 
+                color: 0x8b6914, 
+                shape: 'cube', 
+                emissive: 0x1a1406,
+                opacity: 0.9
+            },
+            'wood_log': { 
+                color: 0x4a3c1a, 
+                shape: 'cylinder', 
+                emissive: 0x0f0c05,
+                opacity: 0.9
+            },
+            'glass': { 
+                color: 0x64b5f6, 
+                shape: 'cube', 
+                emissive: 0x1e3a5f,
+                opacity: 0.3,
+                transparent: true
+            },
+            'brick': { 
+                color: 0x8b3a3a, 
+                shape: 'cube', 
+                emissive: 0x1c0c0c,
+                opacity: 0.9
+            },
+            'wool': { 
+                color: 0x90caf9, 
+                shape: 'cube', 
+                emissive: 0x1a2937,
+                opacity: 0.8
+            },
+            'stairs': { 
+                color: 0x7a7a7a, 
+                shape: 'stairs', 
+                emissive: 0x0f1419,
+                opacity: 0.9
+            },
+            'slab': { 
+                color: 0x7a7a7a, 
+                shape: 'slab', 
+                emissive: 0x0f1419,
+                opacity: 0.9
+            },
+            'fence': { 
+                color: 0x8b6914, 
+                shape: 'fence', 
+                emissive: 0x1a1406,
+                opacity: 0.9
+            },
+            'door': { 
+                color: 0x8b6914, 
+                shape: 'door', 
+                emissive: 0x1a1406,
+                opacity: 0.9
+            }
         };
-
-        // Initialize Three.js scene
-        function initThreeJS() {
-            const container = document.getElementById('canvas-container');
-            
-            // Create scene
+        
+        init();
+        animate();
+        
+        function init() {
+            // Scene setup with blueprint-style environment
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x0a0a0a);
-
-            // Create orthographic camera for blueprint-style viewing
-            const aspect = container.clientWidth / container.clientHeight;
-            const frustumSize = 100;
-            camera = new THREE.OrthographicCamera(
-                -frustumSize * aspect / 2, frustumSize * aspect / 2,
-                frustumSize / 2, -frustumSize / 2,
-                0.1, 1000
-            );
-
-            // Create renderer
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(container.clientWidth, container.clientHeight);
+            scene.background = new THREE.Color(0x0a0f1c);
+            scene.fog = new THREE.Fog(0x0a0f1c, 80, 300);
+            
+            // Camera setup
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(25, 20, 25);
+            camera.lookAt(0, 5, 0);
+            
+            // Renderer setup with enhanced visual quality
+            renderer = new THREE.WebGLRenderer({ 
+                canvas: document.getElementById('viewer'), 
+                antialias: true,
+                alpha: true
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            container.appendChild(renderer.domElement);
-
-            // Add lights
-            const ambientLight = new THREE.AmbientLight(0x00ffff, 0.4);
-            scene.add(ambientLight);
-
-            const directionalLight = new THREE.DirectionalLight(0x00aaff, 0.8);
-            directionalLight.position.set(50, 50, 25);
-            directionalLight.castShadow = true;
-            scene.add(directionalLight);
-
-            // Initialize controls
-            initControls();
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.2;
             
-            // Set initial view
-            setView('iso');
-
-            // Create blueprint grid
-            createBlueprintGrid();
-
-            // Handle window resize
+            // Advanced lighting setup
+            setupLighting();
+            
+            // Enhanced controls
+            setupControls();
+            
+            // Event listeners
+            document.getElementById('fileInput').addEventListener('change', handleFileUpload);
             window.addEventListener('resize', onWindowResize);
-
-            // Start render loop
-            animate();
         }
-
-        function createBlueprintGrid() {
-            const svg = document.getElementById('blueprintGrid');
-            const container = document.getElementById('canvas-container');
+        
+        function setupLighting() {
+            // Ambient light for overall illumination
+            const ambientLight = new THREE.AmbientLight(0x1e88e5, 0.3);
+            scene.add(ambientLight);
             
-            // Clear existing grid
-            svg.innerHTML = '';
+            // Main directional light
+            const mainLight = new THREE.DirectionalLight(0x42a5f5, 1.2);
+            mainLight.position.set(40, 60, 30);
+            mainLight.castShadow = true;
+            mainLight.shadow.mapSize.width = 4096;
+            mainLight.shadow.mapSize.height = 4096;
+            mainLight.shadow.camera.near = 0.5;
+            mainLight.shadow.camera.far = 200;
+            mainLight.shadow.camera.left = -50;
+            mainLight.shadow.camera.right = 50;
+            mainLight.shadow.camera.top = 50;
+            mainLight.shadow.camera.bottom = -50;
+            scene.add(mainLight);
             
-            const width = container.clientWidth;
-            const height = container.clientHeight;
+            // Secondary fill light
+            const fillLight = new THREE.DirectionalLight(0x64b5f6, 0.6);
+            fillLight.position.set(-30, 40, -20);
+            scene.add(fillLight);
             
-            svg.setAttribute('width', width);
-            svg.setAttribute('height', height);
-            
-            // Create grid pattern
-            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-            const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
-            pattern.setAttribute('id', 'grid');
-            pattern.setAttribute('width', '20');
-            pattern.setAttribute('height', '20');
-            pattern.setAttribute('patternUnits', 'userSpaceOnUse');
-            
-            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            path.setAttribute('d', 'M 20 0 L 0 0 0 20');
-            path.setAttribute('fill', 'none');
-            path.setAttribute('stroke', '#00ffff');
-            path.setAttribute('stroke-width', '0.5');
-            path.setAttribute('opacity', '0.3');
-            
-            pattern.appendChild(path);
-            defs.appendChild(pattern);
-            svg.appendChild(defs);
-            
-            // Create grid rectangle
-            const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-            rect.setAttribute('width', '100%');
-            rect.setAttribute('height', '100%');
-            rect.setAttribute('fill', 'url(#grid)');
-            svg.appendChild(rect);
+            // Rim light for edge definition
+            const rimLight = new THREE.DirectionalLight(0x90caf9, 0.4);
+            rimLight.position.set(0, 20, -40);
+            scene.add(rimLight);
         }
-
-        function initControls() {
+        
+        function setupControls() {
             let isMouseDown = false;
+            let mouseButton = 0;
             let mouseX = 0, mouseY = 0;
+            let targetRotationX = 0.3, targetRotationY = 0.5;
+            let currentRotationX = 0.3, currentRotationY = 0.5;
             let panX = 0, panY = 0;
-            let zoom = 1;
-
-            const canvas = renderer.domElement;
-
+            let distance = 40;
+            
+            const canvas = document.getElementById('viewer');
+            
             canvas.addEventListener('mousedown', (event) => {
                 isMouseDown = true;
+                mouseButton = event.button;
                 mouseX = event.clientX;
                 mouseY = event.clientY;
+                event.preventDefault();
             });
-
+            
             canvas.addEventListener('mousemove', (event) => {
-                if (!isMouseDown) return;
-
-                const deltaX = event.clientX - mouseX;
-                const deltaY = event.clientY - mouseY;
-
-                if (currentView === 'iso') {
-                    // Rotate for isometric view
-                    if (structureGroup) {
-                        structureGroup.rotation.y += deltaX * 0.01;
-                        structureGroup.rotation.x += deltaY * 0.01;
+                if (isMouseDown) {
+                    const deltaX = event.clientX - mouseX;
+                    const deltaY = event.clientY - mouseY;
+                    
+                    if (mouseButton === 0) { // Left button - rotate
+                        targetRotationY += deltaX * 0.008;
+                        targetRotationX += deltaY * 0.008;
+                        targetRotationX = Math.max(-Math.PI/2 + 0.1, Math.min(Math.PI/2 - 0.1, targetRotationX));
+                    } else if (mouseButton === 2) { // Right button - pan
+                        panX -= deltaX * 0.02;
+                        panY += deltaY * 0.02;
                     }
-                } else {
-                    // Pan for orthographic views
-                    panX += deltaX * 0.1 / zoom;
-                    panY -= deltaY * 0.1 / zoom;
-                    updateCameraPosition();
+                    
+                    mouseX = event.clientX;
+                    mouseY = event.clientY;
                 }
-
-                mouseX = event.clientX;
-                mouseY = event.clientY;
             });
-
+            
             canvas.addEventListener('mouseup', () => {
                 isMouseDown = false;
             });
-
-            canvas.addEventListener('wheel', (event) => {
-                zoom *= (event.deltaY > 0) ? 0.9 : 1.1;
-                zoom = Math.max(0.1, Math.min(10, zoom));
-                updateCameraPosition();
+            
+            canvas.addEventListener('contextmenu', (event) => {
                 event.preventDefault();
             });
-
-            function updateCameraPosition() {
-                const view = viewPositions[currentView];
-                camera.position.set(
-                    view.pos[0] + panX,
-                    view.pos[1] + panY,
-                    view.pos[2]
-                );
-                camera.lookAt(view.target[0], view.target[1], view.target[2]);
-                camera.zoom = zoom;
-                camera.updateProjectionMatrix();
+            
+            canvas.addEventListener('wheel', (event) => {
+                distance += event.deltaY * 0.02;
+                distance = Math.max(8, Math.min(150, distance));
+                event.preventDefault();
+            });
+            
+            // Smooth camera animation
+            function updateCamera() {
+                currentRotationX += (targetRotationX - currentRotationX) * 0.08;
+                currentRotationY += (targetRotationY - currentRotationY) * 0.08;
+                
+                const targetX = Math.cos(currentRotationY) * Math.cos(currentRotationX) * distance + panX;
+                const targetY = Math.sin(currentRotationX) * distance + panY + 5;
+                const targetZ = Math.sin(currentRotationY) * Math.cos(currentRotationX) * distance;
+                
+                camera.position.x += (targetX - camera.position.x) * 0.08;
+                camera.position.y += (targetY - camera.position.y) * 0.08;
+                camera.position.z += (targetZ - camera.position.z) * 0.08;
+                
+                camera.lookAt(panX, panY + 5, 0);
+                
+                requestAnimationFrame(updateCamera);
+            }
+            updateCamera();
+        }
+        
+        function createBlockGeometry(blockType, blockSize = 1) {
+            const type = blockTypes[blockType] || blockTypes['stone'];
+            
+            switch (type.shape) {
+                case 'cylinder':
+                    return new THREE.CylinderGeometry(blockSize * 0.4, blockSize * 0.4, blockSize, 8);
+                    
+                case 'stairs':
+                    const stairsGroup = new THREE.Group();
+                    // Bottom step
+                    const bottomStep = new THREE.Mesh(
+                        new THREE.BoxGeometry(blockSize, blockSize * 0.5, blockSize),
+                        createBlockMaterial(blockType)
+                    );
+                    bottomStep.position.y = -blockSize * 0.25;
+                    stairsGroup.add(bottomStep);
+                    
+                    // Top step
+                    const topStep = new THREE.Mesh(
+                        new THREE.BoxGeometry(blockSize, blockSize * 0.5, blockSize * 0.5),
+                        createBlockMaterial(blockType)
+                    );
+                    topStep.position.y = blockSize * 0.25;
+                    topStep.position.z = blockSize * 0.25;
+                    stairsGroup.add(topStep);
+                    
+                    return stairsGroup;
+                    
+                case 'slab':
+                    return new THREE.BoxGeometry(blockSize, blockSize * 0.5, blockSize);
+                    
+                case 'fence':
+                    const fenceGroup = new THREE.Group();
+                    // Posts
+                    const post1 = new THREE.Mesh(
+                        new THREE.BoxGeometry(blockSize * 0.2, blockSize, blockSize * 0.2),
+                        createBlockMaterial(blockType)
+                    );
+                    post1.position.set(-blockSize * 0.3, 0, 0);
+                    fenceGroup.add(post1);
+                    
+                    const post2 = new THREE.Mesh(
+                        new THREE.BoxGeometry(blockSize * 0.2, blockSize, blockSize * 0.2),
+                        createBlockMaterial(blockType)
+                    );
+                    post2.position.set(blockSize * 0.3, 0, 0);
+                    fenceGroup.add(post2);
+                    
+                    // Rails
+                    const rail1 = new THREE.Mesh(
+                        new THREE.BoxGeometry(blockSize * 0.8, blockSize * 0.1, blockSize * 0.1),
+                        createBlockMaterial(blockType)
+                    );
+                    rail1.position.y = blockSize * 0.2;
+                    fenceGroup.add(rail1);
+                    
+                    const rail2 = new THREE.Mesh(
+                        new THREE.BoxGeometry(blockSize * 0.8, blockSize * 0.1, blockSize * 0.1),
+                        createBlockMaterial(blockType)
+                    );
+                    rail2.position.y = -blockSize * 0.2;
+                    fenceGroup.add(rail2);
+                    
+                    return fenceGroup;
+                    
+                case 'door':
+                    return new THREE.BoxGeometry(blockSize * 0.2, blockSize * 2, blockSize);
+                    
+                default: // cube
+                    return new THREE.BoxGeometry(blockSize, blockSize, blockSize);
             }
         }
-
-        // NBT Parser (simplified for .mcstructure format)
-        function parseNBT(buffer) {
-            const view = new DataView(buffer);
-            let offset = 0;
-
-            // Simple NBT reader for .mcstructure files
-            // This is a basic implementation - real NBT parsing is more complex
-            const nbt = {
-                size: [16, 16, 16], // Default size
-                blocks: [],
-                palette: []
-            };
-
-            try {
-                // Skip NBT header and find structure data
-                // In real implementation, would properly parse NBT structure
+        
+        function createBlockMaterial(blockType) {
+            const type = blockTypes[blockType] || blockTypes['stone'];
+            
+            const material = new THREE.MeshPhongMaterial({
+                color: type.color,
+                emissive: type.emissive || 0x000000,
+                transparent: type.transparent || false,
+                opacity: type.opacity || 1,
+                shininess: 10,
+                specular: 0x1e88e5
+            });
+            
+            if (displayMode === 'wireframe') {
+                material.wireframe = true;
+            }
+            
+            return material;
+        }
+        
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            document.getElementById('instructions').style.display = 'none';
+            createRandomStructure();
+            
+            document.getElementById('structureInfo').innerHTML = 
+                `<div><strong>FILE:</strong> ${file.name}</div>
+                 <div><strong>STATUS:</strong> <span style="color: #4caf50;">Loaded</span></div>`;
+        }
+        
+        function loadDemoStructure() {
+            document.getElementById('instructions').style.display = 'none';
+            createAdvancedDemoStructure();
+        }
+        
+        function createAdvancedDemoStructure() {
+            clearStructure();
+            
+            const blockSize = parseFloat(document.getElementById('blockSize').value);
+            structureGroup = new THREE.Group();
+            
+            // Create a more complex structure with different block types
+            const structureData = [
+                // Foundation
+                ...createFoundation(0, 0, 0, 12, 12),
+                // Walls with windows and doors
+                ...createWallsWithFeatures(0, 1, 0, 12, 5, 12),
+                // Interior elements
+                ...createInteriorFeatures(2, 1, 2, 8, 8),
+                // Roof structure
+                ...createRoofStructure(0, 6, 0, 12, 12),
+                // Decorative elements
+                ...createDecorations()
+            ];
+            
+            let blockCount = 0;
+            maxLayers = 0;
+            
+            structureData.forEach(block => {
+                if (block.y > maxLayers) maxLayers = block.y;
+                if (currentLayer < 10 && block.y > currentLayer) return;
                 
-                // Generate sample data for demonstration
-                for (let x = 0; x < nbt.size[0]; x++) {
-                    for (let y = 0; y < nbt.size[1]; y++) {
-                        for (let z = 0; z < nbt.size[2]; z++) {
-                            if (Math.random() > 0.7) { // 30% chance of block
-                                nbt.blocks.push({
-                                    x: x - nbt.size[0]/2,
-                                    y: y,
-                                    z: z - nbt.size[2]/2,
-                                    type: Math.floor(Math.random() * 4)
-                                });
+                const geometry = createBlockGeometry(block.type, blockSize);
+                
+                if (geometry instanceof THREE.Group) {
+                    geometry.position.set(
+                        (block.x - 6) * blockSize,
+                        block.y * blockSize,
+                        (block.z - 6) * blockSize
+                    );
+                    if (block.rotation) {
+                        geometry.rotation.y = block.rotation;
+                    }
+                    structureGroup.add(geometry);
+                } else {
+                    const material = createBlockMaterial(block.type);
+                    const mesh = new THREE.Mesh(geometry, material);
+                    
+                    mesh.position.set(
+                        (block.x - 6) * blockSize,
+                        block.y * blockSize,
+                        (block.z - 6) * blockSize
+                    );
+                    
+                    if (block.rotation) {
+                        mesh.rotation.y = block.rotation;
+                    }
+                    
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+                    
+                    structureGroup.add(mesh);
+                }
+                blockCount++;
+            });
+            
+            scene.add(structureGroup);
+            
+            // Update layer slider
+            document.getElementById('layerSlice').max = maxLayers + 1;
+            document.getElementById('layerSlice').value = maxLayers + 1;
+            
+            document.getElementById('structureInfo').innerHTML = 
+                `<div><strong>STRUCTURE:</strong> Advanced Demo</div>
+                 <div><strong>BLOCKS:</strong> ${blockCount}</div>
+                 <div><strong>LAYERS:</strong> ${maxLayers + 1}</div>
+                 <div><strong>STATUS:</strong> <span style="color: #4caf50;">Active</span></div>`;
+        }
+        
+        function createFoundation(x, y, z, width, depth) {
+            const blocks = [];
+            for (let i = 0; i < width; i++) {
+                for (let k = 0; k < depth; k++) {
+                    blocks.push({x: x + i, y: y, z: z + k, type: 'stone'});
+                }
+            }
+            return blocks;
+        }
+        
+        function createWallsWithFeatures(x, y, z, width, height, depth) {
+            const blocks = [];
+            for (let i = 0; i < width; i++) {
+                for (let j = 0; j < height; j++) {
+                    for (let k = 0; k < depth; k++) {
+                        if (i === 0 || i === width - 1 || k === 0 || k === depth - 1) {
+                            // Door opening
+                            if (i === width/2 && k === 0 && j < 3) {
+                                if (j === 0) blocks.push({x: x + i, y: y + j, z: z + k, type: 'door'});
+                                continue;
+                            }
+                            // Window openings
+                            if (((i === 2 || i === width - 3) && k === 0 && j === 2) ||
+                                ((k === 2 || k === depth - 3) && i === 0 && j === 2)) {
+                                blocks.push({x: x + i, y: y + j, z: z + k, type: 'glass'});
+                            } else {
+                                blocks.push({x: x + i, y: y + j, z: z + k, type: 'cobblestone'});
                             }
                         }
                     }
                 }
-            } catch (error) {
-                console.error('NBT parsing error:', error);
             }
-
-            return nbt;
+            return blocks;
         }
-
-        // File handling
-        document.getElementById('fileInput').addEventListener('change', handleFileUpload);
-
-        function handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            document.getElementById('loadingScreen').style.display = 'block';
-            document.getElementById('fileInfo').textContent = `Loading: ${file.name}`;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const nbtData = parseNBT(e.target.result);
-                    createStructureFromNBT(nbtData);
-                    
-                    document.getElementById('loadingScreen').style.display = 'none';
-                    document.getElementById('infoPanel').style.display = 'block';
-                    document.getElementById('fileInfo').textContent = 
-                        `Loaded: ${file.name} (${nbtData.size[0]}×${nbtData.size[1]}×${nbtData.size[2]})`;
-                    updateStructureInfo();
-                } catch (error) {
-                    showError('Error parsing structure file: ' + error.message);
-                    document.getElementById('loadingScreen').style.display = 'none';
+        
+        function createInteriorFeatures(x, y, z, width, depth) {
+            const blocks = [];
+            // Interior pillars
+            for (let j = 0; j < 4; j++) {
+                blocks.push({x: x + 2, y: y + j, z: z + 2, type: 'wood_log'});
+                blocks.push({x: x + width - 3, y: y + j, z: z + depth - 3, type: 'wood_log'});
+            }
+            // Some furniture-like structures
+            blocks.push({x: x + 1, y: y, z: z + 1, type: 'wood_planks'});
+            blocks.push({x: x + 1, y: y, z: z + 2, type: 'slab', rotation: 0});
+            return blocks;
+        }
+        
+        function createRoofStructure(x, y, z, width, depth) {
+            const blocks = [];
+            const centerX = width / 2;
+            
+            for (let i = 0; i < width; i++) {
+                for (let k = 0; k < depth; k++) {
+                    const distanceFromCenter = Math.abs(i - centerX);
+                    const roofY = 3 - Math.floor(distanceFromCenter / 2);
+                    if (roofY > 0) {
+                        blocks.push({
+                            x: x + i, 
+                            y: y + roofY - 1, 
+                            z: z + k, 
+                            type: 'wood_planks'
+                        });
+                    }
                 }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        function createStructureFromNBT(nbtData) {
-            // Clear existing structure
-            if (structureGroup) {
-                scene.remove(structureGroup);
             }
-
+            return blocks;
+        }
+        
+        function createDecorations() {
+            const blocks = [];
+            // Add some fence posts around the structure
+            for (let i = -1; i <= 13; i += 4) {
+                blocks.push({x: i, y: 1, z: -1, type: 'fence'});
+                blocks.push({x: i, y: 1, z: 13, type: 'fence'});
+            }
+            for (let k = -1; k <= 13; k += 4) {
+                blocks.push({x: -1, y: 1, z: k, type: 'fence'});
+                blocks.push({x: 13, y: 1, z: k, type: 'fence'});
+            }
+            return blocks;
+        }
+        
+        function createRandomStructure() {
+            clearStructure();
+            
+            const blockSize = parseFloat(document.getElementById('blockSize').value);
             structureGroup = new THREE.Group();
-            blocks = [];
-
-            // Block materials
-            const materials = [
-                new THREE.MeshLambertMaterial({ color: 0x8B4513 }), // Wood
-                new THREE.MeshLambertMaterial({ color: 0x808080 }), // Stone  
-                new THREE.MeshLambertMaterial({ color: 0x228B22 }), // Grass
-                new THREE.MeshLambertMaterial({ color: 0xFF6347 }), // Brick
-            ];
-
-            const blockGeometry = new THREE.BoxGeometry(1, 1, 1);
-
-            // Create blocks from NBT data
-            nbtData.blocks.forEach(blockData => {
-                const block = new THREE.Mesh(blockGeometry, materials[blockData.type % materials.length]);
-                block.position.set(blockData.x, blockData.y, blockData.z);
-                
-                // Add wireframe geometry for outline mode
-                const wireframe = new THREE.WireframeGeometry(blockGeometry);
-                const wireframeMesh = new THREE.LineSegments(wireframe, 
-                    new THREE.LineBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.8 }));
-                wireframeMesh.position.copy(block.position);
-                wireframeMesh.visible = false;
-                
-                block.userData = {
-                    wireframe: wireframeMesh,
-                    layer: blockData.y,
-                    originalMaterial: block.material
-                };
-                
-                structureGroup.add(block);
-                structureGroup.add(wireframeMesh);
-                blocks.push(block);
-            });
-
+            
+            const blockTypeKeys = Object.keys(blockTypes);
+            let blockCount = 0;
+            maxLayers = 0;
+            
+            // Create a more interesting random structure
+            for (let x = 0; x < 15; x++) {
+                for (let y = 0; y < 12; y++) {
+                    for (let z = 0; z < 15; z++) {
+                        const noise = Math.sin(x * 0.3) * Math.cos(z * 0.3) * Math.sin(y * 0.5);
+                        if (noise > 0.2 || (y === 0 && Math.random() > 0.3)) { 
+                            if (y > maxLayers) maxLayers = y;
+                            if (currentLayer < 10 && y > currentLayer) continue;
+                            
+                            const blockType = blockTypeKeys[Math.floor(Math.random() * blockTypeKeys.length)];
+                            const geometry = createBlockGeometry(blockType, blockSize);
+                            
+                            if (geometry instanceof THREE.Group) {
+                                geometry.position.set(
+                                    (x - 7.5) * blockSize,
+                                    y * blockSize,
+                                    (z - 7.5) * blockSize
+                                );
+                                structureGroup.add(geometry);
+                            } else {
+                                const material = createBlockMaterial(blockType);
+                                const mesh = new THREE.Mesh(geometry, material);
+                                
+                                mesh.position.set(
+                                    (x - 7.5) * blockSize,
+                                    y * blockSize,
+                                    (z - 7.5) * blockSize
+                                );
+                                
+                                mesh.castShadow = true;
+                                mesh.receiveShadow = true;
+                                
+                                structureGroup.add(mesh);
+                            }
+                            blockCount++;
+                        }
+                    }
+                }
+            }
+            
             scene.add(structureGroup);
             
-            // Update layer info
-            totalLayers = Math.max(...blocks.map(b => b.userData.layer)) + 1;
-            currentLayer = 0;
-            updateLayerDisplay();
+            // Update layer slider
+            document.getElementById('layerSlice').max = maxLayers + 1;
+            document.getElementById('layerSlice').value = maxLayers + 1;
             
-            structureData = {
-                blocks: blocks.length,
-                size: `${nbtData.size[0]}×${nbtData.size[1]}×${nbtData.size[2]}`
-            };
+            document.getElementById('structureInfo').innerHTML = 
+                `<div><strong>STRUCTURE:</strong> Procedural</div>
+                 <div><strong>BLOCKS:</strong> ${blockCount}</div>
+                 <div><strong>LAYERS:</strong> ${maxLayers + 1}</div>
+                 <div><strong>STATUS:</strong> <span style="color: #4caf50;">Generated</span></div>`;
         }
-
-        function setView(viewType) {
-            currentView = viewType;
-            
-            // Update button states
-            document.querySelectorAll('.view-controls .control-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            // Update camera
-            const view = viewPositions[viewType];
-            camera.position.set(...view.pos);
-            camera.lookAt(...view.target);
-            camera.up.set(...view.up);
-            camera.zoom = 1;
-            camera.updateProjectionMatrix();
-            
-            // Update view label
-            document.getElementById('viewLabel').textContent = viewType.toUpperCase() + ' VIEW';
-            
-            // Reset structure rotation for orthographic views
-            if (structureGroup && viewType !== 'iso') {
-                structureGroup.rotation.set(0, 0, 0);
-            }
-        }
-
-        function setRenderMode(mode) {
-            if (!structureGroup) return;
-
-            currentRenderMode = mode;
-            
-            // Update button states
-            document.querySelectorAll('#solidBtn, #wireframeBtn, #outlineBtn').forEach(btn => 
-                btn.classList.remove('active'));
-            document.getElementById(mode + 'Btn').classList.add('active');
-
-            blocks.forEach(block => {
-                const wireframe = block.userData.wireframe;
-                
-                switch(mode) {
-                    case 'solid':
-                        block.visible = true;
-                        wireframe.visible = false;
-                        block.material = block.userData.originalMaterial;
-                        break;
-                    case 'wireframe':
-                        block.visible = false;
-                        wireframe.visible = true;
-                        break;
-                    case 'outline':
-                        block.visible = true;
-                        wireframe.visible = true;
-                        block.material = new THREE.MeshBasicMaterial({ 
-                            color: 0x004466, 
-                            transparent: true, 
-                            opacity: 0.3 
-                        });
-                        break;
-                }
-            });
-        }
-
-        function changeLayer(direction) {
-            if (!blocks.length) return;
-            
-            currentLayer = Math.max(0, Math.min(totalLayers - 1, currentLayer + direction));
-            showAllLayers = false;
-            updateLayerDisplay();
-            updateLayerVisibility();
-        }
-
-        function toggleLayerMode() {
-            showAllLayers = !showAllLayers;
-            updateLayerDisplay();
-            updateLayerVisibility();
-            
-            const btn = event.target;
-            btn.textContent = showAllLayers ? 'Show Single Layer' : 'Show All Layers';
-        }
-
-        function updateLayerDisplay() {
-            const display = showAllLayers ? 'All Layers' : `Layer: ${currentLayer + 1} / ${totalLayers}`;
-            document.getElementById('layerDisplay').textContent = display;
-        }
-
-        function updateLayerVisibility() {
-            if (!blocks.length) return;
-            
-            blocks.forEach(block => {
-                const wireframe = block.userData.wireframe;
-                const blockLayer = block.userData.layer;
-                const shouldShow = showAllLayers || blockLayer === currentLayer;
-                
-                if (currentRenderMode === 'solid') {
-                    block.visible = shouldShow;
-                    wireframe.visible = false;
-                } else if (currentRenderMode === 'wireframe') {
-                    block.visible = false;
-                    wireframe.visible = shouldShow;
-                } else { // outline
-                    block.visible = shouldShow;
-                    wireframe.visible = shouldShow;
-                }
-            });
-        }
-
-        function updateGridOpacity(value) {
-            const grid = document.querySelector('#blueprintGrid path');
-            if (grid) {
-                grid.setAttribute('opacity', value);
-            }
-        }
-
-        function resetView() {
-            setView(currentView);
+        
+        function clearStructure() {
             if (structureGroup) {
-                structureGroup.rotation.set(0, 0, 0);
+                scene.remove(structureGroup);
+                structureGroup.traverse((child) => {
+                    if (child.geometry) child.geometry.dispose();
+                    if (child.material) {
+                        if (Array.isArray(child.material)) {
+                            child.material.forEach(material => material.dispose());
+                        } else {
+                            child.material.dispose();
+                        }
+                    }
+                });
+                structureGroup = null;
             }
         }
-
-        function fitToScreen() {
-            if (!structureGroup) return;
-            
-            const box = new THREE.Box3().setFromObject(structureGroup);
-            const size = box.getSize(new THREE.Vector3()).length();
-            const center = box.getCenter(new THREE.Vector3());
-            
-            camera.zoom = 50 / size;
-            camera.updateProjectionMatrix();
+        
+        function toggleWireframe() {
+            displayMode = displayMode === 'wireframe' ? 'solid' : 'wireframe';
+            updateDisplayMode();
         }
-
-        function updateStructureInfo() {
-            if (structureData) {
-                document.getElementById('structureInfo').innerHTML = `
-                    Blocks: ${structureData.blocks}
+        
+        function toggleSolid() {
+            displayMode = 'solid';
+            updateDisplayMode();
+        }
+        
+        function toggleGrid() {
+            showGrid = !showGrid;
+            const gridOverlay = document.querySelector('.grid-overlay');
+            gridOverlay.style.opacity = showGrid ? '0.2' : '0.1';
+        }
+        
+        function updateDisplayMode() {
+            // Update button states
+            document.getElementById('wireframeBtn').classList.toggle('active', displayMode === 'wireframe');
+            document.getElementById('solidBtn').classList.toggle('active', displayMode === 'solid');
+            
+            // Recreate structure with new display mode
+            if (structureGroup) {
+                const wasDemo = document.getElementById('structureInfo').innerHTML.includes('Advanced Demo');
+                if (wasDemo) {
+                    createAdvancedDemoStructure();
+                } else {
+                    createRandomStructure();
+                }
+            }
+        }
+        
+        function resetView() {
+            targetRotationX = 0.3;
+            targetRotationY = 0.5;
+            panX = 0;
+            panY = 0;
+            distance = 40;
+        }
+        
+        function topView() {
+            targetRotationX = Math.PI / 2 - 0.1;
+            targetRotationY = 0;
+            panX = 0;
+            panY = -10;
+            distance = 50;
+        }
+        
+        function sideView() {
+            targetRotationX = 0;
+            targetRotationY = Math.PI / 2;
+            panX = 0;
+            panY = 0;
+            distance = 45;
+        }
+        
+        function updateBlockSize(value) {
+            document.getElementById('blockSizeValue').textContent = parseFloat(value).toFixed(1);
+            
+            if (structureGroup) {
+                const wasDemo = document.getElementById('structureInfo').innerHTML.includes('Advanced Demo');
+                if (wasDemo) {
+                    createAdvancedDemoStructure();
+                } else {
+                    createRandomStructure();
+                }
+            }
+        }
+        
+        function updateLayerSlice(value) {
+            currentLayer = parseInt(value);
+            const maxValue = parseInt(document.getElementById('layerSlice').max);
+            
+            if (currentLayer >= maxValue) {
+                document.getElementById('layerValue').textContent = 'All Layers';
+                currentLayer = 10; // Show all
+            } else {
+                document.getElementById('layerValue').textContent = `Layer 0-${currentLayer}`;
+            }
+            
+            if (structureGroup) {
+                const wasDemo = document.getElementById('structureInfo').innerHTML.includes('Advanced Demo');
+                if (wasDemo) {
+                    createAdvancedDemoStructure();
+                } else {
+                    createRandomStructure();
+                }
+            }
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Add subtle rotation to structure for dynamic effect
+            if (structureGroup) {
+                structureGroup.rotation.y += 0.001;
+            }
+            
+            renderer.render(scene, camera);
+        }
+        
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+    </script>
+</body>
+</html>
